@@ -3,113 +3,164 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1920, user-scalable=no">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    <title>Smart IPTV - Netflix Style</title>
+    <title>Stream IPTV - Premium UI</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --bg: #141414; --primary: #e50914; --text: #fff; --card-w: 220px; --card-h: 330px; }
-        body { 
-            background-color: var(--bg); color: var(--text); font-family: 'Segoe UI', Tahoma, sans-serif; 
-            margin: 0; padding: 0; overflow-x: hidden; overflow-y: auto; user-select: none;
+        /* إعدادات الشاشات الكبيرة (65 بوصة) */
+        :root { 
+            --bg: #0f0f0f; --primary: #e50914; --text: #ffffff; 
+            --card-w: 16vw; --card-h: 24vw; /* مقاسات ديناميكية تتكيف مع الشاشة */
         }
+        body { background-color: var(--bg); color: var(--text); font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; overflow: hidden; user-select: none; }
         ::-webkit-scrollbar { display: none; }
+        .hidden { display: none !important; }
+
+        /* 1. الشريط العلوي الشفاف (Sticky Header) */
+        header {
+            position: fixed; top: 0; width: 100%; height: 10vh; padding: 0 4vw;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%);
+            display: flex; align-items: center; justify-content: space-between; z-index: 100; box-sizing: border-box;
+            transition: background 0.3s;
+        }
+        header.scrolled { background: rgba(15, 15, 15, 0.95); backdrop-filter: blur(10px); }
+        .logo { font-size: 2.5vw; font-weight: 900; color: var(--primary); letter-spacing: 2px; }
+        .nav-links { display: flex; gap: 3vw; }
+        .nav-item { font-size: 1.3vw; font-weight: 600; opacity: 0.6; cursor: pointer; padding: 0.5vw 1vw; outline: none; border-radius: 5px; transition: 0.3s; }
+        .nav-item:focus, .nav-item:hover, .nav-item.active { opacity: 1; transform: scale(1.1); background: rgba(255,255,255,0.1); }
+        .user-info { display: flex; align-items: center; gap: 1vw; font-size: 1.2vw; }
+
+        /* 2. منطقة العرض الديناميكية (نصف الشاشة العلوي) */
+        #active-item-hero {
+            position: absolute; top: 0; width: 100%; height: 55vh;
+            background-size: cover; background-position: center 20%;
+            display: flex; align-items: flex-end; padding: 4vw; box-sizing: border-box;
+            box-shadow: inset 0px -20vh 15vh -5vh var(--bg), inset -30vw 0px 20vh -5vh var(--bg);
+            transition: background-image 0.5s ease;
+        }
+        .hero-content { max-width: 45vw; text-shadow: 2px 2px 10px rgba(0,0,0,0.9); }
+        .hero-title { font-size: 4vw; font-weight: bold; margin: 0 0 1vh 0; }
+        .hero-meta { font-size: 1.2vw; color: #ccc; margin-bottom: 2vh; font-weight: 600; display: flex; gap: 1vw; }
+        .hero-desc { font-size: 1.1vw; line-height: 1.6; opacity: 0.8; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+        /* 3. القوائم (Rows) */
+        #main-content { position: absolute; top: 50vh; width: 100%; height: 50vh; overflow-y: auto; padding-bottom: 5vh; scroll-behavior: smooth; }
+        .row-container { margin-bottom: 4vh; }
+        .row-title { font-size: 1.5vw; font-weight: bold; margin: 0 4vw 1.5vh 0; opacity: 0.9; }
+        .row-inner { display: flex; gap: 1.5vw; overflow-x: auto; padding: 1vh 4vw; scroll-behavior: smooth; }
+        
+        /* البطاقات وتأثير التركيز */
+        .card {
+            flex: 0 0 auto; width: var(--card-w); height: var(--card-h); border-radius: 0.5vw; overflow: hidden; position: relative;
+            background: #222; cursor: pointer; outline: none; transition: transform 0.3s ease, border 0.3s ease;
+        }
+        .card img { width: 100%; height: 100%; object-fit: cover; }
+        .card:focus, .card:hover { transform: scale(1.1) translateY(-1vh); border: 0.3vw solid white; z-index: 10; box-shadow: 0 2vh 4vh rgba(0,0,0,0.8); }
+        .progress-bar { position: absolute; bottom: 0; width: 100%; height: 0.6vh; background: rgba(255,255,255,0.3); }
+        .progress-fill { height: 100%; background: var(--primary); }
+
+        /* 4. شاشة التفاصيل (Full Screen) */
+        #details-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 200;
+            overflow-y: auto; padding: 10vh 4vw; box-sizing: border-box; background-size: cover; background-position: center;
+            box-shadow: inset 0 0 50vw 20vw rgba(0,0,0,0.9);
+        }
+        .details-header { display: flex; gap: 3vw; align-items: flex-start; }
+        .details-poster { width: 20vw; border-radius: 1vw; box-shadow: 0 2vh 5vh rgba(0,0,0,0.8); }
+        .details-info h1 { font-size: 4vw; margin: 0 0 1vh 0; }
+        .action-btn { background: var(--text); color: black; border: none; padding: 1.5vh 3vw; font-size: 1.5vw; font-weight: bold; border-radius: 0.5vw; cursor: pointer; margin-top: 3vh; outline: none; transition: 0.3s; margin-left: 1vw; }
+        .action-btn.fav { background: rgba(50,50,50,0.8); color: white; border: 0.1vw solid white; }
+        .action-btn:focus, .action-btn:hover { transform: scale(1.05); background: var(--primary); color: white; border-color: var(--primary); }
+        
+        /* قائمة المواسم والحلقات */
+        .seasons-select { background: #222; color: white; padding: 1vh 2vw; font-size: 1.5vw; border: none; border-radius: 0.5vw; margin-top: 4vh; outline: none; }
+        .seasons-select:focus { border: 0.2vw solid white; }
+        .episodes-list { margin-top: 3vh; display: grid; grid-template-columns: repeat(auto-fill, minmax(20vw, 1fr)); gap: 1vw; }
+        .ep-card { background: #333; padding: 2vh; border-radius: 0.5vw; cursor: pointer; outline: none; transition: 0.3s; display: flex; justify-content: space-between; align-items: center; }
+        .ep-card:focus, .ep-card:hover { background: var(--text); color: black; transform: scale(1.03); }
+
+        /* شاشة اختيار الملف الشخصي */
+        #profiles-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: var(--bg); }
+        .profiles-container { display: flex; gap: 3vw; margin-top: 5vh; }
+        .profile-card { width: 10vw; height: 10vw; background: #333; border-radius: 1vw; display: flex; align-items: center; justify-content: center; font-size: 2vw; font-weight: bold; cursor: pointer; outline: none; transition: 0.3s; }
+        .profile-card:focus, .profile-card:hover { background: white; color: black; transform: scale(1.1); }
+
+        /* المشغل */
+        #player-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 9999; }
+        video { width: 100%; height: 100%; outline: none; background: #000; }
         
         /* شاشة تسجيل الدخول */
-        #login-screen { 
-            height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; 
-            background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 100%), url('https://assets.nflxext.com/ffe/siteui/vlv3/9d3533b2-0e2b-40b2-95e0-fa47f50dfeb9/web/SA-ar-20240311-popsignuptwoweeks-perspective_alpha_website_large.jpg');
-            background-size: cover; background-position: center;
-        }
-        .login-box { background: rgba(0,0,0,0.8); padding: 50px; border-radius: 8px; width: 420px; box-sizing: border-box; }
-        input { 
-            width: 100%; padding: 15px; margin: 12px 0; border-radius: 4px; border: none; background: #333; color: white; font-size: 18px; outline: none; box-sizing: border-box;
-        }
-        input:focus { background: #444; border-bottom: 3px solid var(--primary); }
-        button { 
-            width: 100%; background: var(--primary); color: white; border: none; padding: 16px; border-radius: 4px; font-size: 20px; font-weight: bold; cursor: pointer; margin-top: 15px; outline: none;
-        }
-        button:focus, button:hover { background: #b20710; transform: scale(1.02); }
-
-        /* الشاشة الرئيسية */
-        .hidden { display: none !important; }
-        nav { 
-            position: fixed; top: 0; width: 100%; background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent); 
-            padding: 20px 60px; display: flex; align-items: center; gap: 40px; z-index: 100; box-sizing: border-box;
-        }
-        nav h1 { color: var(--primary); margin: 0; font-size: 36px; font-weight: 900; }
-        .nav-links span { font-size: 20px; cursor: pointer; opacity: 0.7; transition: 0.2s; padding: 5px 15px; outline: none; }
-        .nav-links span:focus, .nav-links span:hover, .nav-links span.active { opacity: 1; font-weight: bold; transform: scale(1.08); }
-
-        /* البوستر العملاق (Hero) */
-        #hero-banner {
-            width: 100%; height: 75vh; background-size: cover; background-position: center top;
-            display: flex; flex-direction: column; justify-content: flex-end; padding: 60px; box-sizing: border-box;
-            background-image: linear-gradient(to top, var(--bg) 5%, transparent 70%);
-        }
-        #hero-title { font-size: 65px; font-weight: bold; margin-bottom: 15px; text-shadow: 2px 2px 8px rgba(0,0,0,0.9); }
-        #hero-desc { font-size: 22px; max-width: 650px; text-shadow: 1px 1px 4px rgba(0,0,0,0.9); line-height: 1.6; opacity: 0.9; }
-
-        /* صفوف نتفلكس */
-        .category-row { margin: 30px 0 30px 60px; }
-        .category-title { font-size: 26px; font-weight: bold; margin-bottom: 15px; padding-right: 5px; }
-        .row-inner { display: flex; gap: 18px; overflow-x: auto; scroll-behavior: smooth; padding: 15px 5px; }
-        
-        .movie-card {
-            flex: 0 0 auto; width: var(--card-w); height: var(--card-h); border-radius: 6px; overflow: hidden; position: relative;
-            cursor: pointer; outline: none; transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1); background: #222;
-        }
-        .movie-card img { width: 100%; height: 100%; object-fit: cover; }
-        .movie-card:hover, .movie-card:focus {
-            transform: scale(1.12) translateY(-8px); border: 3px solid var(--text); z-index: 10; box-shadow: 0 12px 25px rgba(0,0,0,0.8);
-        }
-        
-        /* مؤشر تقدم المشاهدة */
-        .progress-bar { position: absolute; bottom: 0; width: 100%; height: 6px; background: rgba(255,255,255,0.25); }
-        .progress-fill { height: 100%; background: var(--primary); width: 0%; }
-
-        /* حاوية المشغل الفول سكرين */
-        #tv-player-container {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 9999; 
-            display: flex; align-items: center; justify-content: center;
-        }
-        video { width: 100%; height: 100%; background: #000; outline: none; }
+        #login-screen { height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .login-box input { width: 25vw; padding: 1.5vh; margin: 1vh 0; font-size: 1.2vw; }
+        .login-box button { width: 25vw; padding: 1.5vh; font-size: 1.5vw; }
     </style>
 </head>
 <body>
 
     <div id="login-screen">
         <div class="login-box">
-            <h1 style="color: var(--primary); text-align: center; margin-bottom: 30px;">تطبيق IPTV</h1>
-            <input type="text" id="xtream-domain" placeholder="رابط السيرفر (http://...)" tabindex="1">
-            <input type="text" id="xtream-user" placeholder="اسم المستخدم" tabindex="2">
-            <input type="password" id="xtream-pass" placeholder="كلمة المرور" tabindex="3">
-            <button onclick="saveCredentials()" tabindex="4">تسجيل الدخول</button>
+            <h1 style="color: var(--primary);">تطبيق STREAM</h1>
+            <input type="text" id="iptv-domain" placeholder="رابط السيرفر">
+            <input type="text" id="iptv-user" placeholder="اسم المستخدم">
+            <input type="password" id="iptv-pass" placeholder="كلمة المرور">
+            <button onclick="login()">دخول</button>
         </div>
+    </div>
+
+    <div id="profiles-screen" class="hidden">
+        <h1>من يشاهد الآن؟</h1>
+        <div class="profiles-container" id="profiles-list">
+            </div>
+        <button class="action-btn" style="margin-top:5vh;" onclick="addProfile()">+ مستخدم جديد</button>
     </div>
 
     <div id="main-screen" class="hidden">
-        <nav id="navbar">
-            <h1>STREAM</h1>
+        <header id="main-header">
+            <div class="logo">STREAM</div>
             <div class="nav-links">
-                <span class="active" tabindex="5" onclick="loadContent('movies')">الأفلام</span>
-                <span tabindex="6" onclick="loadContent('series')">المسلسلات</span>
-                <span tabindex="7" onclick="loadContent('live')">القنوات الحية</span>
+                <div class="nav-item active" tabindex="1" onclick="loadPage('home')">الرئيسية</div>
+                <div class="nav-item" tabindex="2" onclick="loadPage('movies')">أفلام</div>
+                <div class="nav-item" tabindex="3" onclick="loadPage('series')">مسلسلات</div>
+                <div class="nav-item" tabindex="4" onclick="loadPage('live')">قنوات</div>
+                <div class="nav-item" tabindex="5" onclick="loadPage('favorites')">مفضلاتي</div>
             </div>
-            <div style="flex-grow: 1;"></div>
-            <div class="nav-links"><span tabindex="8" onclick="logout()">خروج</span></div>
-        </nav>
+            <div class="user-info">
+                <span id="current-profile-name"></span>
+                <div class="nav-item" tabindex="6" onclick="changeProfile()">تبديل</div>
+            </div>
+        </header>
 
-        <div id="hero-banner">
-            <div id="hero-title">جاري التجهيز...</div>
-            <div id="hero-desc">مرحباً بك، اختر تبويب العرض للبدء في تصفح مكتبتك السحابية الذكية.</div>
+        <div id="active-item-hero" style="background-image: url('https://via.placeholder.com/1920x1080/0f0f0f/0f0f0f');">
+            <div class="hero-content">
+                <h1 class="hero-title" id="hero-title">جاري التجهيز...</h1>
+                <div class="hero-meta" id="hero-meta"><span>--</span> | <span>--</span></div>
+                <div class="hero-desc" id="hero-desc">استخدم أسهم الريموت للتنقل بين المحتوى...</div>
+            </div>
         </div>
 
-        <div id="content-container" style="margin-top: -120px; position: relative; z-index: 10;"></div>
+        <div id="main-content">
+            <div id="continue-watching-container"></div>
+            <div id="rows-container"></div>
+        </div>
     </div>
 
-    <div id="tv-player-container" class="hidden">
+    <div id="details-screen" class="hidden">
+        <div class="details-header">
+            <img id="detail-poster" class="details-poster" src="">
+            <div class="details-info">
+                <h1 id="detail-title"></h1>
+                <div class="hero-meta" id="detail-meta"></div>
+                <p class="hero-desc" id="detail-desc" style="-webkit-line-clamp: unset;"></p>
+                <div id="detail-actions">
+                    </div>
+            </div>
+        </div>
+        <div id="series-content" class="hidden">
+            <select id="season-selector" class="seasons-select" tabindex="10"></select>
+            <div id="episodes-container" class="episodes-list"></div>
+        </div>
+    </div>
+
+    <div id="player-container" class="hidden">
         <video id="tv-video" controls autoplay playsinline webkit-playsinline>
             <source id="vid-mkv" src="" type="video/x-matroska">
             <source id="vid-mp4" src="" type="video/mp4">
@@ -117,209 +168,352 @@
     </div>
 
 <script>
-    // ربط مكتبة سوبابيس
-    const SUPABASE_URL = 'https://kpfymvtyqbyjmlqfgujo.supabase.co'; 
-    const SUPABASE_ANON_KEY = 'sb_publishable_g7dHfpmPHcQwAWsO9FFuGw_4lG8fyLc'; 
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // --- تهيئة سوبابيس ---
+    const supabaseUrl = 'https://kpfymvtyqbyjmlqfgujo.supabase.co';
+    const supabaseKey = 'sb_publishable_g7dHfpmPHcQwAWsO9FFuGw_4lG8fyLc';
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-    let currentUser, currentPass, currentDomain;
+    let iptv = { domain: '', user: '', pass: '' };
+    let currentProfile = '';
+    let currentView = 'login';
     let isPlaying = false;
-    let currentMovieId = null;
-    let tabIndexCounter = 10;
+    let activeStreamData = null; // يحفظ بيانات العنصر المفتوح حالياً
 
+    // --- 1. الإقلاع والدخول ---
     window.onload = () => {
-        if (localStorage.getItem('xtream_user')) {
-            currentUser = localStorage.getItem('xtream_user');
-            currentPass = localStorage.getItem('xtream_pass');
-            currentDomain = localStorage.getItem('xtream_domain');
-            showMainScreen();
-        } else {
-            document.getElementById('xtream-domain').focus();
+        if(localStorage.getItem('iptv_user')) {
+            iptv = {
+                domain: localStorage.getItem('iptv_domain'),
+                user: localStorage.getItem('iptv_user'),
+                pass: localStorage.getItem('iptv_pass')
+            };
+            showProfilesScreen();
         }
     };
 
-    function saveCredentials() {
-        const domain = document.getElementById('xtream-domain').value.trim();
-        const user = document.getElementById('xtream-user').value.trim();
-        const pass = document.getElementById('xtream-pass').value.trim();
-        if (!domain || !user || !pass) return;
-
-        currentDomain = domain.endsWith('/') ? domain.slice(0, -1) : domain;
-        currentUser = user; currentPass = pass;
+    function login() {
+        iptv.domain = document.getElementById('iptv-domain').value.trim();
+        iptv.user = document.getElementById('iptv-user').value.trim();
+        iptv.pass = document.getElementById('iptv-pass').value.trim();
+        if(!iptv.user) return;
         
-        localStorage.setItem('xtream_domain', currentDomain);
-        localStorage.setItem('xtream_user', currentUser);
-        localStorage.setItem('xtream_pass', currentPass);
-        showMainScreen();
+        localStorage.setItem('iptv_domain', iptv.domain);
+        localStorage.setItem('iptv_user', iptv.user);
+        localStorage.setItem('iptv_pass', iptv.pass);
+        showProfilesScreen();
     }
 
-    function logout() { localStorage.clear(); location.reload(); }
-
-    function showMainScreen() {
+    // --- 2. نظام الملفات الشخصية ---
+    function showProfilesScreen() {
         document.getElementById('login-screen').classList.add('hidden');
-        document.getElementById('main-screen').classList.remove('hidden');
-        loadContent('movies');
+        document.getElementById('main-screen').classList.add('hidden');
+        document.getElementById('profiles-screen').classList.remove('hidden');
+        
+        let profiles = JSON.parse(localStorage.getItem('tv_profiles')) || ['العائلة'];
+        const container = document.getElementById('profiles-list');
+        container.innerHTML = '';
+        
+        profiles.forEach((p, idx) => {
+            const card = document.createElement('div');
+            card.className = 'profile-card focusable';
+            card.tabIndex = 100 + idx;
+            card.innerText = p;
+            card.onclick = () => selectProfile(p);
+            card.onkeypress = (e) => { if(e.key === 'Enter') selectProfile(p); };
+            container.appendChild(card);
+        });
     }
 
-    async function loadContent(type) {
-        // تحديث حالة الأزرار النشطة بصرياً
-        document.querySelectorAll('.nav-links span').forEach(el => el.classList.remove('active'));
-        event?.target?.classList?.add('active');
+    function addProfile() {
+        let name = prompt('أدخل اسم المستخدم الجديد:');
+        if(name) {
+            let profiles = JSON.parse(localStorage.getItem('tv_profiles')) || ['العائلة'];
+            profiles.push(name);
+            localStorage.setItem('tv_profiles', JSON.stringify(profiles));
+            showProfilesScreen();
+        }
+    }
 
-        document.getElementById('content-container').innerHTML = '<h2 style="margin:60px; text-align:center;">جاري جلب تصنيفات المحتوى...</h2>';
+    function selectProfile(name) {
+        currentProfile = name;
+        document.getElementById('current-profile-name').innerText = name;
+        document.getElementById('profiles-screen').classList.add('hidden');
+        document.getElementById('main-screen').classList.remove('hidden');
+        loadPage('home');
+    }
+
+    function changeProfile() { showProfilesScreen(); }
+
+    // --- 3. الواجهة الرئيسية والتمرير ---
+    async function loadPage(type) {
+        // تحديث القائمة العلوية
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        event?.target?.classList.add('active');
+
+        document.getElementById('rows-container').innerHTML = '<h2 style="padding:4vw;">جاري التحميل...</h2>';
         
-        let catAction = type === 'movies' ? 'get_vod_categories' : (type === 'series' ? 'get_series_categories' : 'get_live_categories');
-        let streamAction = type === 'movies' ? 'get_vod_streams' : (type === 'series' ? 'get_series' : 'get_live_streams');
+        if (type === 'home' || type === 'movies') {
+            await loadContinueWatching();
+            await fetchAndBuildRows('get_vod_categories', 'get_vod_streams', 'movie');
+        } else if (type === 'series') {
+            document.getElementById('continue-watching-container').innerHTML = ''; // إخفاء المتابعة هنا
+            await fetchAndBuildRows('get_series_categories', 'get_series', 'series');
+        }
+        setupMagicRemote();
+    }
 
+    async function fetchAndBuildRows(catAction, streamAction, itemType) {
+        const container = document.getElementById('rows-container');
         try {
-            const catRes = await fetch(`${currentDomain}/player_api.php?username=${currentUser}&password=${currentPass}&action=${catAction}`);
-            const categories = await catRes.json();
-            const targetedCategories = categories.slice(0, 5); // أخذ أول 5 صفوف لضمان خفة التطبيق
+            const resCat = await fetch(`${iptv.domain}/player_api.php?username=${iptv.user}&password=${iptv.pass}&action=${catAction}`);
+            const cats = await resCat.json();
+            container.innerHTML = '';
 
-            document.getElementById('content-container').innerHTML = '';
-            
-            // جلب المزامنة من سوبابيس دفعة واحدة لتقليص الاستدعاءات
-            let userActivity = [];
-            try {
-                const { data } = await supabaseClient.from('user_activity').select('*').eq('username', currentUser);
-                if (data) userActivity = data;
-            } catch(e) { console.log("سوبابيس قيد التهيئة", e); }
-
-            for (let i = 0; i < targetedCategories.length; i++) {
-                const cat = targetedCategories[i];
-                const streamRes = await fetch(`${currentDomain}/player_api.php?username=${currentUser}&password=${currentPass}&action=${streamAction}&category_id=${cat.category_id}`);
-                const streams = await streamRes.json();
+            for (let i = 0; i < Math.min(cats.length, 5); i++) {
+                const resStreams = await fetch(`${iptv.domain}/player_api.php?username=${iptv.user}&password=${iptv.pass}&action=${streamAction}&category_id=${cats[i].category_id}`);
+                const streams = await resStreams.json();
                 
                 if(streams.length > 0) {
-                    if(i === 0 && streams[0]) updateHeroSection(streams[0], type);
-                    buildNetflixRow(cat.category_name, streams.slice(0, 15), type, userActivity);
+                    if(i===0 && itemType==='movie') updateHero(streams[0], 'movie');
+                    buildRow(cats[i].category_name, streams.slice(0, 15), itemType);
                 }
             }
-            
-            // تفعيل التمرير عبر بكرة ريموت الماجيك تلقائياً
-            bindMagicRemoteWheel();
-
-        } catch (error) {
-            document.getElementById('content-container').innerHTML = '<h2 style="margin:60px; color:var(--primary); text-align:center;">فشل الاتصال بمزود خدمة IPTV.</h2>';
-        }
+        } catch (e) { container.innerHTML = '<h2>حدث خطأ في الاتصال</h2>'; }
     }
 
-    function updateHeroSection(item, type) {
-        const title = item.name || item.title;
-        const img = item.stream_icon || item.cover || '';
-        document.getElementById('hero-title').innerText = title;
-        if(img) {
-            document.getElementById('hero-banner').style.backgroundImage = `linear-gradient(to top, var(--bg) 8%, rgba(20,20,20,0) 85%), url('${img}')`;
-        }
-    }
-
-    function buildNetflixRow(rowTitle, items, type, userActivity) {
-        const container = document.getElementById('content-container');
-        const rowWrapper = document.createElement('div');
-        rowWrapper.className = 'category-row';
-        rowWrapper.innerHTML = `<div class="category-title">${rowTitle}</div>`;
-        
-        const innerRow = document.createElement('div');
-        innerRow.className = 'row-inner';
+    // بناء صف عادي
+    let tIndex = 200;
+    function buildRow(title, items, type) {
+        const wrapper = document.createElement('div'); wrapper.className = 'row-container';
+        wrapper.innerHTML = `<div class="row-title">${title}</div>`;
+        const inner = document.createElement('div'); inner.className = 'row-inner';
 
         items.forEach(item => {
-            const id = item.stream_id || item.series_id;
-            const activity = userActivity.find(act => act.movie_id == id);
-            const resumeTime = activity ? activity.resume_time : 0;
-            const progress = resumeTime > 0 ? Math.min((resumeTime / 7200) * 100, 100) : 0;
-
             const card = document.createElement('div');
-            card.className = 'movie-card';
-            card.setAttribute('tabindex', tabIndexCounter++);
+            card.className = 'card focusable';
+            card.tabIndex = tIndex++;
+            const img = item.stream_icon || item.cover || 'https://via.placeholder.com/300x450';
             
-            const imgUrl = item.stream_icon || item.cover || 'https://via.placeholder.com/220x330/222/fff?text=No+Image';
-            card.innerHTML = `
-                <img src="${imgUrl}" onerror="this.src='https://via.placeholder.com/220x330/222/fff?text=Poster'">
-                ${resumeTime > 0 ? `<div class="progress-bar"><div class="progress-fill" style="width: ${progress}%"></div></div>` : ''}
-            `;
-
-            const triggerPlayback = () => {
-                let streamUrl = '';
-                if(type === 'movies') streamUrl = `${currentDomain}/movie/${currentUser}/${currentPass}/${id}.${item.container_extension || 'mkv'}`;
-                else if(type === 'live') streamUrl = `${currentDomain}/${currentUser}/${currentPass}/${id}`;
-                else return; // تخصيص جلب حلقات المسلسلات لاحقاً
-                
-                launchPlayer(streamUrl, resumeTime, id);
-            };
-
-            card.onclick = triggerPlayback;
-            card.onkeydown = (e) => { if(e.keyCode === 13) triggerPlayback(); };
+            card.innerHTML = `<img src="${img}">`;
             
-            innerRow.appendChild(card);
+            // السحر هنا: عند تمرير المؤشر (ماجيك ريموت) أو انتقال الفوكس (الأسهم)
+            const handleFocus = () => updateHero(item, type);
+            card.onmouseover = handleFocus; 
+            card.onfocus = handleFocus;
+            
+            // عند الضغط
+            const handleClick = () => openDetails(item, type);
+            card.onclick = handleClick;
+            card.onkeypress = (e) => { if(e.key==='Enter') handleClick(); };
+            
+            inner.appendChild(card);
         });
-
-        rowWrapper.appendChild(innerRow);
-        container.appendChild(rowWrapper);
+        wrapper.appendChild(inner);
+        document.getElementById('rows-container').appendChild(wrapper);
     }
 
-    function bindMagicRemoteWheel() {
+    // تحديث النصف العلوي (البوستر الديناميكي)
+    function updateHero(item, type) {
+        const title = item.name || item.title;
+        const img = item.stream_icon || item.cover;
+        const year = item.year || item.releaseDate || 'N/A';
+        const rating = item.rating ? `⭐ ${item.rating}` : '';
+        const badge = type === 'movie' ? 'فيلم' : 'مسلسل';
+
+        document.getElementById('hero-title').innerText = title;
+        document.getElementById('hero-meta').innerHTML = `<span>${badge}</span> | <span>${year}</span> | <span>${rating}</span>`;
+        document.getElementById('active-item-hero').style.backgroundImage = `url('${img}')`;
+    }
+
+    // --- 4. شاشة التفاصيل (Full Screen) ---
+    async function openDetails(item, type) {
+        history.pushState({view: 'details'}, 'Details', '#details');
+        document.getElementById('main-screen').classList.add('hidden');
+        document.getElementById('details-screen').classList.remove('hidden');
+        document.getElementById('series-content').classList.add('hidden');
+        document.getElementById('detail-actions').innerHTML = 'جاري جلب التفاصيل...';
+
+        const id = item.stream_id || item.series_id;
+        activeStreamData = { ...item, type, id };
+
+        document.getElementById('detail-title').innerText = item.name || item.title;
+        document.getElementById('detail-poster').src = item.stream_icon || item.cover;
+        document.getElementById('details-screen').style.backgroundImage = `linear-gradient(to right, rgba(15,15,15,1) 30%, rgba(15,15,15,0.7) 100%), url('${item.stream_icon || item.cover}')`;
+
+        // جلب بيانات مفصلة من السيرفر
+        let action = type === 'movie' ? `get_vod_info&vod_id=${id}` : `get_series_info&series_id=${id}`;
+        try {
+            const res = await fetch(`${iptv.domain}/player_api.php?username=${iptv.user}&password=${iptv.pass}&action=${action}`);
+            const data = await res.json();
+            
+            const info = data.info;
+            document.getElementById('detail-desc').innerText = info.plot || info.description || 'لا يوجد وصف.';
+            document.getElementById('detail-meta').innerHTML = `<span>${info.genre || ''}</span> | <span>${info.duration || info.episode_run_time || ''}</span>`;
+
+            // بناء الأزرار
+            let btnsHtml = '';
+            if (type === 'movie') {
+                btnsHtml += `<button class="action-btn" tabindex="50" onclick="playStream('${id}', 'movie')">▶ تشغيل</button>`;
+            }
+            btnsHtml += `<button class="action-btn fav" tabindex="51" onclick="toggleFavorite()">❤ أضف للمفضلة</button>`;
+            document.getElementById('detail-actions').innerHTML = btnsHtml;
+            setTimeout(() => document.querySelector('.action-btn').focus(), 100);
+
+            // إذا كان مسلسل، نعرض المواسم
+            if (type === 'series' && data.episodes) {
+                document.getElementById('series-content').classList.remove('hidden');
+                renderSeasons(data.episodes);
+            }
+
+        } catch (e) {
+            document.getElementById('detail-actions').innerHTML = '<button class="action-btn" onclick="history.back()">رجوع</button>';
+        }
+    }
+
+    function renderSeasons(episodesObj) {
+        const select = document.getElementById('season-selector');
+        select.innerHTML = '';
+        const seasons = Object.keys(episodesObj);
+        
+        seasons.forEach(s => {
+            let opt = document.createElement('option');
+            opt.value = s; opt.innerText = `الموسم ${s}`;
+            select.appendChild(opt);
+        });
+
+        // عند تغيير الموسم
+        select.onchange = () => renderEpisodes(episodesObj[select.value]);
+        
+        // عرض أول موسم افتراضياً
+        if(seasons.length > 0) renderEpisodes(episodesObj[seasons[0]]);
+    }
+
+    function renderEpisodes(epsList) {
+        const container = document.getElementById('episodes-container');
+        container.innerHTML = '';
+        let tIdx = 60;
+        epsList.forEach(ep => {
+            const div = document.createElement('div');
+            div.className = 'ep-card focusable';
+            div.tabIndex = tIdx++;
+            div.innerHTML = `<span>الحلقة ${ep.episode_num}</span> <span>▶</span>`;
+            
+            const handlePlay = () => playStream(ep.id, 'movie', ep.container_extension); // الحلقات تعامل كأفلام في المشغل
+            div.onclick = handlePlay;
+            div.onkeypress = (e) => { if(e.key === 'Enter') handlePlay(); };
+            
+            container.appendChild(div);
+        });
+    }
+
+    // --- 5. المشغل والمزامنة ---
+    const video = document.getElementById('tv-video');
+    function playStream(id, type, ext = 'mkv') {
+        let url = `${iptv.domain}/${type==='movie'?'movie':'live'}/${iptv.user}/${iptv.pass}/${id}.${ext}`;
+        
+        history.pushState({view: 'player'}, 'Player', '#player');
+        document.getElementById('details-screen').classList.add('hidden');
+        document.getElementById('player-container').classList.remove('hidden');
+        
+        isPlaying = true;
+        document.getElementById('vid-mkv').src = url; document.getElementById('vid-mp4').src = url;
+        video.load(); video.play();
+
+        // حفظ النشاط في سوبابيس لبدء قائمة المتابعة
+        saveActivity(0);
+    }
+
+    video.addEventListener('timeupdate', () => {
+        if(isPlaying && Math.floor(video.currentTime) % 10 === 0) { // كل 10 ثواني
+            saveActivity(Math.floor(video.currentTime));
+        }
+    });
+
+    async function saveActivity(time) {
+        if(!activeStreamData) return;
+        await supabase.from('user_activity').upsert({
+            username: iptv.user, profile_name: currentProfile,
+            movie_id: activeStreamData.id, item_type: activeStreamData.type,
+            resume_time: time, item_data: activeStreamData
+        }, { onConflict: 'username, profile_name, movie_id' });
+    }
+
+    // --- 6. قائمة متابعة المشاهدة ---
+    async function loadContinueWatching() {
+        const container = document.getElementById('continue-watching-container');
+        try {
+            const { data, error } = await supabase.from('user_activity')
+                .select('*')
+                .eq('username', iptv.user)
+                .eq('profile_name', currentProfile)
+                .order('updated_at', { ascending: false });
+
+            if(data && data.length > 0) {
+                const wrapper = document.createElement('div'); wrapper.className = 'row-container';
+                wrapper.innerHTML = `<div class="row-title">متابعة المشاهدة</div>`;
+                const inner = document.createElement('div'); inner.className = 'row-inner';
+
+                data.forEach(item => {
+                    const obj = item.item_data;
+                    const card = document.createElement('div');
+                    card.className = 'card focusable'; card.tabIndex = tIndex++;
+                    
+                    const progress = item.item_type === 'movie' ? Math.min((item.resume_time / 7200) * 100, 100) : 100;
+                    
+                    card.innerHTML = `
+                        <img src="${obj.stream_icon || obj.cover}">
+                        <div class="progress-bar"><div class="progress-fill" style="width: ${progress}%"></div></div>
+                    `;
+                    card.onmouseover = () => updateHero(obj, item.item_type);
+                    card.onfocus = () => updateHero(obj, item.item_type);
+                    card.onclick = () => openDetails(obj, item.item_type);
+                    card.onkeypress = (e) => { if(e.key==='Enter') openDetails(obj, item.item_type); };
+                    
+                    inner.appendChild(card);
+                });
+                wrapper.appendChild(inner);
+                container.appendChild(wrapper);
+            }
+        } catch(e) {}
+    }
+
+    // --- 7. نظام التحكم بالريموت (الأسهم + العجلة + زر الرجوع) ---
+    window.addEventListener('popstate', (e) => {
+        if (isPlaying) {
+            isPlaying = false; video.pause(); video.src = "";
+            document.getElementById('player-container').classList.add('hidden');
+            document.getElementById('details-screen').classList.remove('hidden');
+        } else {
+            document.getElementById('details-screen').classList.add('hidden');
+            document.getElementById('main-screen').classList.remove('hidden');
+            loadPage('home'); // تحديث الواجهة عند العودة
+        }
+    });
+
+    function setupMagicRemote() {
+        // تحويل عجلة الماوس إلى سكرول أفقي للقوائم
         document.querySelectorAll('.row-inner').forEach(row => {
             row.addEventListener('wheel', (e) => {
                 e.preventDefault();
-                row.scrollLeft += e.deltaY * 2.5; 
+                row.scrollLeft += e.deltaY * 3; 
             });
+        });
+        
+        // تأثير الشريط العلوي عند النزول
+        const mainContent = document.getElementById('main-content');
+        mainContent.addEventListener('scroll', () => {
+            const header = document.getElementById('main-header');
+            if(mainContent.scrollTop > 50) header.classList.add('scrolled');
+            else header.classList.remove('scrolled');
         });
     }
 
-    // إدارة المشغل وزر الرجوع الذكي (History Back Fix)
-    const videoNode = document.getElementById('tv-video');
-
-    function launchPlayer(url, resumeTime, id) {
-        currentMovieId = id;
-        isPlaying = true;
-        
-        // الخدعة الهندسية: ندفع حالة جديدة للتاريخ لمنع الخروج من التطبيق عند ضغط زر العودة
-        history.pushState({view: 'player'}, 'Player', '#view-player');
-
-        document.getElementById('main-screen').classList.add('hidden');
-        document.getElementById('tv-player-container').classList.remove('hidden');
-
-        document.getElementById('vid-mkv').src = url;
-        document.getElementById('vid-mp4').src = url;
-        
-        videoNode.load();
-        videoNode.onloadedmetadata = () => { if (resumeTime > 0) videoNode.currentTime = resumeTime; };
-        videoNode.play();
-    }
-
-    // التقاط ضغط زر الـ Back من ريموت التلفاز
-    window.addEventListener('popstate', (e) => {
-        if (isPlaying) { unloadPlayer(); }
-    });
-
-    function unloadPlayer() {
-        isPlaying = false;
-        videoNode.pause();
-        videoNode.src = ""; 
-        document.getElementById('tv-player-container').classList.add('hidden');
-        document.getElementById('main-screen').classList.remove('hidden');
-        loadContent('movies'); // إعادة التحديث السريع لعرض خطوط التقدم الجديدة بصرياً
-    }
-
-    // مزامنة النقاط التوقيتية لكل 5 ثوانٍ مع سوبابيس
-    videoNode.addEventListener('timeupdate', () => {
-        if (!isPlaying || !currentMovieId) return;
-        const seconds = Math.floor(videoNode.currentTime);
-        if (seconds > 0 && seconds % 5 === 0) {
-            supabaseClient.from('user_activity').upsert({ 
-                username: currentUser, 
-                movie_id: currentMovieId, 
-                resume_time: seconds 
-            }, { onConflict: 'username, movie_id' }).then();
-        }
-    });
-
-    // تحكم الأسهم الافتراضية للتقديم والتأخير أثناء المشاهدة
+    // التحكم الإضافي بالمشغل (التقديم/التأخير)
     document.addEventListener('keydown', (e) => {
         if (!isPlaying) return;
-        if(e.keyCode === 37) videoNode.currentTime -= 10;
-        else if(e.keyCode === 39) videoNode.currentTime += 10;
-        else if(e.keyCode === 13) videoNode.paused ? videoNode.play() : videoNode.pause();
+        if(e.keyCode === 37) video.currentTime -= 15;
+        if(e.keyCode === 39) video.currentTime += 15;
+        if(e.keyCode === 13) video.paused ? video.play() : video.pause();
     });
 </script>
 </body>
