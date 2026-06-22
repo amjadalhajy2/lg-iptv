@@ -22,7 +22,7 @@ jobs:
 
       - name: Package App to IPK
         continue-on-error: true
-        run: ares-package .
+        run: ares-package tv-app
 
       - name: Upload IPK Artifact
         uses: actions/upload-artifact@v4
