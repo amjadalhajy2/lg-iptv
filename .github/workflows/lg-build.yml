@@ -1,46 +1,30 @@
-name: Build LG webOS App
+name: Build webOS IPK
 
 on:
   push:
-    branches: [ main ]
-  workflow_dispatch:
+    branches: [ "main" ]
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
+
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-    - name: Create Package
-      run: |
-        # إنشاء مسار الحزمة
-        mkdir -p package/usr/palm/applications/com.smart.iptv.app
-        
-        # نسخ الملفات الضرورية فقط (index.html, appinfo.json, icon.png)
-        # هذا يمنع حدوث خطأ "النسخ داخل النفس"
-        cp index.html appinfo.json icon.png package/usr/palm/applications/com.smart.iptv.app/
-        
-        # ضغط ملفات التطبيق (data.tar.gz)
-        cd package
-        tar -czvf ../data.tar.gz .
-        cd ..
-        
-        # إنشاء ملف التحكم (control)
-        echo "Package: com.smart.iptv.app" > control
-        echo "Version: 1.0.0" >> control
-        echo "Section: misc" >> control
-        echo "Priority: optional" >> control
-        echo "Architecture: all" >> control
-        echo "Description: Smart IPTV App" >> control
-        tar -czvf control.tar.gz control
-        
-        # إنشاء ملف الـ ipk النهائي
-        echo "2.0" > debian-binary
-        ar -r com.smart.iptv.app_1.0.0_all.ipk debian-binary control.tar.gz data.tar.gz
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
 
-    - name: Upload IPK Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: smart-iptv-lg-app
-        path: "*.ipk"
+      - name: Install webOS CLI
+        run: npm install -g @webos-tools/cli
+
+      - name: Package App to IPK
+        run: ares-package .
+
+      - name: Upload IPK Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: smart-iptv-app
+          path: "*.ipk"
