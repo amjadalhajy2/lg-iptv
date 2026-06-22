@@ -1,0 +1,12 @@
+{
+  "id": "com.smart.iptv.app",
+  "version": "1.0.1",
+  "vendor": "My IPTV",
+  "type": "web",
+  "main": "index.html",
+  "title": "Smart IPTV",
+  "icon": "icon.png",
+  "resolution": "1920x1080",
+  "background_color": "#000000",
+  "transparent": false
+}
