@@ -405,59 +405,58 @@
     }
 
     // --- نظام سوبابيس المصلح بالكامل للمتابعة والمفضلات ---
-    async function loadSupabaseRows(tableName, rowTitle, filterType) {
-        const container = document.getElementById('continue-watching-container');
-        try {
-            let query = supabaseClient.from(tableName).select('*').eq('username', iptv.user).eq('profile_name', currentProfile);
-            if (filterType) query = query.eq('item_type', filterType);
-            if (tableName === 'user_activity') query = query.order('updated_at', { ascending: false });
+async function loadSupabaseRows(tableName, rowTitle, filterType) {
+    const container = document.getElementById('continue-watching-container');
+    try {
+        let query = supabaseClient.from(tableName).select('*').eq('username', iptv.user).eq('profile_name', currentProfile);
+        if (filterType) query = query.eq('item_type', filterType);
+        if (tableName === 'user_activity') query = query.order('updated_at', { ascending: false });
 
-            const { data, error } = await query;
-            if(error) {
-                showToast("خطأ سوبابيس: " + error.message);
-                throw error;
-            }
+        const { data, error } = await query;
+        if(error) throw error; // إرسال الخطأ مباشرة إلى بند catch ليتم عرضه
 
-            if(data && data.length > 0) {
-                const wrapper = document.createElement('div'); wrapper.className = 'row-container';
-                const btnRight = document.createElement('button'); btnRight.className = 'scroll-btn right focusable'; btnRight.innerHTML = '▶';
-                const btnLeft = document.createElement('button'); btnLeft.className = 'scroll-btn left focusable'; btnLeft.innerHTML = '◀';
+        if(data && data.length > 0) {
+            const wrapper = document.createElement('div'); wrapper.className = 'row-container';
+            const btnRight = document.createElement('button'); btnRight.className = 'scroll-btn right focusable'; btnRight.innerHTML = '▶';
+            const btnLeft = document.createElement('button'); btnLeft.className = 'scroll-btn left focusable'; btnLeft.innerHTML = '◀';
+            
+            wrapper.innerHTML = `<div class="row-title">${rowTitle}</div>`;
+            const inner = document.createElement('div'); inner.className = 'row-inner';
+            btnRight.onclick = () => inner.scrollBy({ left: 800, behavior: 'smooth' });
+            btnLeft.onclick = () => inner.scrollBy({ left: -800, behavior: 'smooth' });
+
+            data.forEach(row => {
+                let obj = row.item_data;
+                if(typeof obj === 'string') { try { obj = JSON.parse(obj); } catch(e) {} }
+                if(!obj) return;
+
+                const card = document.createElement('button');
+                card.className = 'card focusable'; card.tabIndex = 0;
+                card.setAttribute('data-title', (obj.name || obj.title || '').toLowerCase());
+                const progress = row.resume_time > 0 ? Math.min((row.resume_time / 7200) * 100, 100) : 0;
                 
-                wrapper.innerHTML = `<div class="row-title">${rowTitle}</div>`;
-                const inner = document.createElement('div'); inner.className = 'row-inner';
-                btnRight.onclick = () => inner.scrollBy({ left: 800, behavior: 'smooth' });
-                btnLeft.onclick = () => inner.scrollBy({ left: -800, behavior: 'smooth' });
-
-                data.forEach(row => {
-                    let obj = row.item_data;
-                    if(typeof obj === 'string') { try { obj = JSON.parse(obj); } catch(e) {} }
-                    if(!obj) return;
-
-                    const card = document.createElement('button');
-                    card.className = 'card focusable';
-                    card.setAttribute('data-title', (obj.name || obj.title || '').toLowerCase());
-                    const progress = row.resume_time > 0 ? Math.min((row.resume_time / 7200) * 100, 100) : 0;
-                    
-                    card.innerHTML = `
-                        <img src="${obj.stream_icon || obj.cover}" onerror="this.src='https://via.placeholder.com/300x450/222/fff?text=Poster'">
-                        ${tableName === 'user_activity' ? `<div class="progress-bar"><div class="progress-fill" style="width: ${progress}%"></div></div>` : ''}
-                    `;
-                    card.addEventListener('mouseenter', (e) => e.target.focus());
-                    
-                    card.onclick = () => {
-                        activeStreamData = { ...obj, type: row.item_type, id: row.movie_id, resume_time: row.resume_time };
-                        openDetails(obj, row.item_type);
-                    };
-                    inner.appendChild(card);
-                });
-                wrapper.appendChild(btnRight); wrapper.appendChild(inner); wrapper.appendChild(btnLeft);
-                container.appendChild(wrapper);
-            }
-        } catch(e) { 
-            showToast("فشل جلب متابعة المشاهدة عينات");
-            console.error("Error loading Continue Watching:", e); 
+                card.innerHTML = `
+                    <img src="${obj.stream_icon || obj.cover}" onerror="this.src='https://via.placeholder.com/300x450/222/fff?text=Poster'">
+                    ${tableName === 'user_activity' ? `<div class="progress-bar"><div class="progress-fill" style="width: ${progress}%"></div></div>` : ''}
+                `;
+                card.addEventListener('mouseenter', (e) => e.target.focus());
+                
+                card.onclick = () => {
+                    // تم تعديل جلب المعرف ليدعم حقول المفرة والمتابعة معاً دون تعارض
+                    activeStreamData = { ...obj, type: row.item_type, id: row.movie_id || row.item_id, resume_time: row.resume_time };
+                    openDetails(obj, row.item_type);
+                };
+                inner.appendChild(card);
+            });
+            wrapper.appendChild(btnRight); wrapper.appendChild(inner); wrapper.appendChild(btnLeft);
+            container.appendChild(wrapper);
         }
+    } catch(e) { 
+        // عرض نص الخطأ الفعلي على الشاشة لمعرفة السبب بدقة (مثل نقص عمود أو اسم جدول خاطئ)
+        showToast("خطأ سوبابيس: " + (e.message || e));
+        console.error("Error loading Continue Watching:", e); 
     }
+}
 
     // --- شاشة العرض الاحترافية المقسمة بدقة عالية ---
     async function openDetails(item, type) {
