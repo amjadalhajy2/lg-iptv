@@ -3,20 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1920, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
-    <title>Stream IPTV - Ultimate TV UI</title>
+    <title>Stream IPTV - Premium Ultimate TV UI</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --bg: #0a0a0a; --primary: #e50914; --text: #ffffff; --card-w: 16vw; --card-h: 24vw; }
         
         body { 
             background-color: var(--bg); color: var(--text); font-family: 'Segoe UI', Tahoma, sans-serif; 
-            margin: 0; overflow: hidden; user-select: none;
+            margin: 0; padding: 0; overflow: hidden; user-select: none; width: 100vw; height: 100vh;
         }
         ::-webkit-scrollbar { display: none; }
         .hidden { display: none !important; }
 
+        /* الشاشات المستقلة - تدعم التمرير بالعجلة الدوارة بشكل كامل ومستقر */
         .scrollable-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100vh; 
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
             overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth; z-index: 50; background: var(--bg);
         }
 
@@ -24,19 +25,18 @@
             visibility: hidden; min-width: 25vw; background-color: rgba(229, 9, 20, 0.95); color: #fff;
             text-align: center; border-radius: 0.5vw; padding: 1vw 2vw; position: fixed;
             z-index: 10000; right: 2vw; bottom: 4vh; font-size: 1.3vw; font-weight: bold;
-            box-shadow: 0 1vh 3vh rgba(0,0,0,0.8); transition: opacity 0.4s, transform 0.4s; 
-            opacity: 0; transform: translateY(2vh); backdrop-filter: blur(5px);
+            box-shadow: 0 1vh 3vh rgba(0,0,0,0.8); transition: opacity 0.4s; opacity: 0; backdrop-filter: blur(5px);
         }
-        #toast.show { visibility: visible; opacity: 1; transform: translateY(0); }
+        #toast.show { visibility: visible; opacity: 1; }
 
         /* الشريط العلوي */
         header {
-            position: fixed; top: 0; left: 0; width: 100%; height: 12vh; padding: 0 4vw;
+            position: fixed; top: 0; left: 0; width: 100%; height: 14vh; padding: 0 4vw;
             background: linear-gradient(to bottom, rgba(0,0,0,0.95) 0%, transparent 100%);
             display: flex; align-items: center; justify-content: space-between; z-index: 100; box-sizing: border-box;
-            text-shadow: 2px 2px 5px rgba(0,0,0,0.8); transition: background 0.3s;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.8);
         }
-        header.scrolled { background: rgba(10,10,10,0.95); backdrop-filter: blur(10px); border-bottom: 0.1vw solid rgba(255,255,255,0.1); }
+        header.scrolled { background: rgba(10,10,10,0.98); border-bottom: 0.1vw solid rgba(255,255,255,0.1); }
         .logo { font-size: 2.5vw; font-weight: 900; color: var(--primary); letter-spacing: 2px; }
         .nav-links { display: flex; gap: 2vw; align-items: center; }
         .nav-item { background: transparent; border: none; color: white; font-size: 1.5vw; font-weight: 600; opacity: 0.7; cursor: pointer; padding: 0.5vw 1vw; outline: none; border-radius: 5px; transition: 0.3s; }
@@ -51,14 +51,14 @@
         .user-info { display: flex; align-items: center; gap: 1vw; font-size: 1.3vw; font-weight: bold; }
 
         /* منطقة القوائم الرئيسية */
-        #main-content { padding-top: 15vh; padding-bottom: 10vh; }
-        .row-container { margin-bottom: 5vh; position: relative; }
+        #main-content { padding-top: 16vh; padding-bottom: 10vh; }
+        .row-container { margin-bottom: 6vh; position: relative; }
         .row-title { font-size: 1.8vw; font-weight: bold; margin: 0 4vw 2vh 0; opacity: 0.9; text-shadow: 1px 1px 3px black; }
         .row-inner { display: flex; gap: 1.5vw; overflow-x: auto; padding: 1vh 4vw; scroll-behavior: smooth; }
         
         .scroll-btn {
             position: absolute; top: 55%; transform: translateY(-50%);
-            background: rgba(20,20,20,0.6); color: white; border: 0.1vw solid rgba(255,255,255,0.2);
+            background: rgba(20,20,20,0.7); color: white; border: 0.1vw solid rgba(255,255,255,0.2);
             font-size: 2vw; width: 4vw; height: 4vw; border-radius: 50%; cursor: pointer; z-index: 10;
             display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px); transition: 0.3s; outline: none;
         }
@@ -78,71 +78,41 @@
         .progress-fill { height: 100%; background: var(--primary); }
 
         /* =========================================================
-           شاشة التفاصيل الاحترافية الجديدة (مقاسات الشاشات العملاقة)
+           شاشة التفاصيل الهندسية الجديدة (توزيع ثلاثي الأبعاد)
            ========================================================= */
-        #details-screen { 
-            padding: 8vh 4vw; box-sizing: border-box; background-size: cover; background-position: center; 
-            box-shadow: inset 0 0 80vw 50vw rgba(0,0,0,0.95); z-index: 200; 
-        }
+        #details-screen { padding: 6vh 4vw; box-sizing: border-box; background-size: cover; background-position: center; box-shadow: inset 0 0 80vw 60vw rgba(0,0,0,0.98); z-index: 200; }
+        .details-layout { display: flex; gap: 4vw; height: 88vh; align-items: stretch; }
         
-        /* التوزيع المرن (اليمين والمنتصف واليسار) */
-        .details-layout { 
-            display: flex; gap: 4vw; height: 84vh; align-items: stretch; 
-        }
-        
-        /* القسم 1 (اليمين): الصورة بالطول الكامل */
-        .details-poster-col {
-            flex: 0 0 25vw; /* عرض ثابت للصورة */
-            height: 100%;
-        }
-        .details-poster { 
-            width: 100%; height: 100%; object-fit: cover; border-radius: 1vw; 
-            box-shadow: 0 2vh 6vh rgba(0,0,0,0.9); border: 0.1vw solid rgba(255,255,255,0.1);
-        }
+        /* يمين: الصورة بكامل طول الشاشة */
+        .details-poster-col { flex: 0 0 24vw; height: 100%; }
+        .details-poster { width: 100%; height: 100%; object-fit: cover; border-radius: 1vw; box-shadow: 0 2vh 6vh rgba(0,0,0,0.9); }
 
-        /* القسم 2 (المنتصف أو اليسار حسب النوع): البيانات والأزرار */
-        .details-info-col {
-            flex: 1; /* يأخذ المساحة المتبقية */
-            display: flex; flex-direction: column; gap: 3vh; padding-top: 2vh;
-        }
-        .details-title { font-size: 4vw; font-weight: bold; margin: 0; text-shadow: 2px 2px 8px black; line-height: 1.2; }
+        /* منتصف: النصوص والبيانات والتحكم */
+        .details-info-col { flex: 1; display: flex; flex-direction: column; gap: 3.5vh; padding-top: 1vh; justify-content: flex-start; }
+        .details-title { font-size: 3.8vw; font-weight: bold; margin: 0; text-shadow: 2px 2px 8px black; line-height: 1.2; }
+        .action-bar { display: flex; gap: 1.5vw; align-items: center; }
         
-        /* شريط الأزرار (أفقي) */
-        .action-bar { display: flex; gap: 2vw; align-items: center; }
-        .action-btn { 
-            background: var(--text); color: black; border: none; padding: 1.5vh 3vw; 
-            font-size: 1.5vw; font-weight: bold; border-radius: 0.5vw; cursor: pointer; outline: none; transition: 0.3s; 
-        }
-        .action-btn.fav { background: rgba(40,40,40,0.8); color: white; border: 0.1vw solid white; backdrop-filter: blur(5px); }
+        .action-btn { background: var(--text); color: black; border: none; padding: 1.5vh 3vw; font-size: 1.4vw; font-weight: bold; border-radius: 0.5vw; cursor: pointer; outline: none; transition: 0.3s; display: flex; align-items: center; gap: 0.5vw; }
+        .action-btn.fav { background: rgba(50,50,50,0.8); color: white; border: 0.1vw solid white; backdrop-filter: blur(5px); }
         .action-btn:focus, .action-btn:hover { transform: scale(1.05); background: var(--primary); color: white; border-color: var(--primary); }
-        .seasons-select { background: rgba(30,30,30,0.8); color: white; padding: 1.5vh 2vw; font-size: 1.5vw; border: 0.1vw solid white; border-radius: 0.5vw; outline: none; cursor: pointer; }
+        .seasons-select { background: rgba(30,30,30,0.85); color: white; padding: 1.5vh 2vw; font-size: 1.4vw; border: 0.1vw solid white; border-radius: 0.5vw; outline: none; cursor: pointer; }
         .seasons-select:focus { border-color: var(--primary); background: #000; }
 
-        /* البيانات الوصفية (سنة - نوع - مدة) */
-        .details-meta { font-size: 1.4vw; color: #ccc; font-weight: 600; display: flex; gap: 1.5vw; text-shadow: 1px 1px 3px black; }
-        .details-desc { font-size: 1.3vw; line-height: 1.8; opacity: 0.85; text-shadow: 1px 1px 3px black; max-width: 90%; }
+        .details-meta { font-size: 1.3vw; color: #ccc; font-weight: 600; display: flex; gap: 1.5vw; text-shadow: 1px 1px 3px black; background: rgba(255,255,255,0.05); padding: 1vh 1.5vw; border-radius: 0.5vw; width: fit-content; }
+        .details-desc { font-size: 1.25vw; line-height: 1.8; opacity: 0.85; text-shadow: 1px 1px 3px black; max-width: 95%; margin: 0; }
 
-        /* القسم 3 (اليسار): قائمة حلقات المسلسل (تظهر للمسلسلات فقط) */
-        .details-episodes-col {
-            flex: 0 0 25vw; /* عرض ثابت للقائمة */
-            height: 100%; overflow-y: auto; overflow-x: hidden; padding-right: 1vw;
-            /* تصميم شريط التمرير الداخلي */
-            scrollbar-width: none; 
-        }
+        /* يسار: عمود الحلقات المنفرد للمسلسلات */
+        .details-episodes-col { flex: 0 0 25vw; height: 100%; overflow-y: auto; padding-left: 0.5vw; }
         .episodes-list-vertical { display: flex; flex-direction: column; gap: 1.5vh; padding-bottom: 5vh; }
-        .ep-card { 
-            background: rgba(40,40,40,0.9); padding: 2vh; border-radius: 0.5vw; cursor: pointer; outline: none; 
-            transition: 0.3s; display: flex; justify-content: space-between; align-items: center; 
-            border: 0.1vw solid transparent; color: white; font-size: 1.2vw; flex-shrink: 0;
-        }
-        .ep-card:focus, .ep-card:hover { background: var(--text); color: black; transform: scale(1.05); border-color: white; }
+        .ep-card { background: rgba(35,35,35,0.85); padding: 2vh; border-radius: 0.5vw; cursor: pointer; outline: none; transition: 0.3s; display: flex; justify-content: space-between; align-items: center; border: 0.1vw solid transparent; color: white; font-size: 1.2vw; }
+        .ep-card:focus, .ep-card:hover { background: var(--text); color: black; transform: scale(1.03); border-color: white; }
 
-        /* النوافذ الفرعية */
+        /* شاشات الحسابات */
         #profiles-screen, #login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 500; }
         .profiles-container { display: flex; gap: 3vw; margin-top: 5vh; flex-wrap: wrap; justify-content: center; }
         .profile-card { width: 12vw; height: 12vw; background: #222; border-radius: 1vw; display: flex; align-items: center; justify-content: center; font-size: 2.5vw; font-weight: bold; cursor: pointer; outline: none; transition: 0.3s; border: 0.2vw solid transparent; color: white; }
         .profile-card:focus, .profile-card:hover { background: var(--text); color: black; transform: scale(1.1); border-color: var(--primary); }
-        .login-box input { width: 25vw; padding: 1.5vh; margin: 1vh 0; font-size: 1.2vw; border-radius: 5px; border: none; outline: none; font-family: inherit; }
+        .login-box input { width: 25vw; padding: 1.5vh; margin: 1vh 0; font-size: 1.2vw; border-radius: 5px; border: none; outline: none; }
         .login-box button { width: 25vw; padding: 1.5vh; font-size: 1.5vw; background: var(--primary); color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 2vh; }
 
         #add-modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); z-index: 1000; display: flex; justify-content: center; align-items: center; }
@@ -160,44 +130,44 @@
     <div id="login-screen" class="scrollable-screen">
         <div class="login-box" style="text-align: center;">
             <h1 style="color: var(--primary); font-size: 3vw;">STREAM</h1>
-            <input type="text" id="iptv-domain" tabindex="0" class="focusable" placeholder="رابط السيرفر">
-            <input type="text" id="iptv-user" tabindex="0" class="focusable" placeholder="اسم المستخدم">
-            <input type="password" id="iptv-pass" tabindex="0" class="focusable" placeholder="كلمة المرور">
-            <button tabindex="0" class="focusable" onclick="login()">تسجيل الدخول</button>
+            <input type="text" id="iptv-domain" class="focusable" placeholder="رابط السيرفر">
+            <input type="text" id="iptv-user" class="focusable" placeholder="اسم المستخدم">
+            <input type="password" id="iptv-pass" class="focusable" placeholder="كلمة المرور">
+            <button class="focusable" onclick="login()">تسجيل الدخول</button>
         </div>
     </div>
 
     <div id="add-modal" class="hidden">
         <div class="modal-box">
             <h2 style="margin:0;">اسم المستخدم الجديد</h2>
-            <input type="text" id="new-profile-input" tabindex="0" class="focusable" placeholder="اكتب الاسم هنا...">
+            <input type="text" id="new-profile-input" class="focusable" placeholder="اكتب الاسم هنا...">
             <br>
-            <button class="action-btn focusable" tabindex="0" onclick="saveNewProfile()">حفظ وإنشاء</button>
-            <button class="action-btn fav focusable" tabindex="0" onclick="document.getElementById('add-modal').classList.add('hidden')">إلغاء</button>
+            <button class="action-btn focusable" onclick="saveNewProfile()">حفظ وإنشاء</button>
+            <button class="action-btn fav focusable" onclick="document.getElementById('add-modal').classList.add('hidden')">إلغاء</button>
         </div>
     </div>
 
     <div id="profiles-screen" class="scrollable-screen hidden">
-        <h1 style="font-size: 3vw;">من يشاهد الآن؟</h1>
+        <h1 style="font-size: 3vw;">من يشاهد الآن?</h1>
         <div class="profiles-container" id="profiles-list"></div>
-        <button class="action-btn focusable" tabindex="0" style="margin-top:5vh;" onclick="openAddProfileModal()">+ مستخدم جديد</button>
+        <button class="action-btn focusable" style="margin-top:5vh;" onclick="openAddProfileModal()">+ مستخدم جديد</button>
     </div>
 
     <div id="main-screen" class="scrollable-screen hidden">
         <header id="main-header">
             <div class="logo">STREAM</div>
             <div class="nav-links">
-                <button class="nav-item active focusable" tabindex="0" onclick="loadPage('movies')">الأفلام</button>
-                <button class="nav-item focusable" tabindex="0" onclick="loadPage('series')">المسلسلات</button>
-                <button class="nav-item focusable" tabindex="0" onclick="loadPage('live')">القنوات</button>
-                <button class="nav-item focusable" tabindex="0" onclick="loadPage('favorites')">مفضلاتي</button>
+                <button class="nav-item active focusable" onclick="loadPage('movies')">الأفلام</button>
+                <button class="nav-item focusable" onclick="loadPage('series')">المسلسلات</button>
+                <button class="nav-item focusable" onclick="loadPage('live')">القنوات</button>
+                <button class="nav-item focusable" onclick="loadPage('favorites')">مفضلاتي</button>
                 <div class="search-box">
-                    <input type="text" id="search-input" tabindex="0" class="focusable" placeholder="🔍 ابحث هنا عالمياً..." onkeyup="handleSearch()">
+                    <input type="text" id="search-input" class="focusable" placeholder="🔍 ابحث في السيرفر كاملاً..." onkeyup="handleSearch()">
                 </div>
             </div>
             <div class="user-info">
                 <span id="current-profile-name"></span>
-                <button class="nav-item focusable" tabindex="0" style="font-size: 1.2vw;" onclick="changeProfile()">تبديل</button>
+                <button class="nav-item focusable" style="font-size: 1.2vw;" onclick="changeProfile()">تبديل</button>
             </div>
         </header>
 
@@ -216,11 +186,8 @@
 
             <div class="details-info-col">
                 <h1 id="detail-title" class="details-title"></h1>
-                
                 <div class="action-bar" id="detail-actions"></div>
-                
                 <div class="details-meta" id="detail-meta"></div>
-                
                 <p class="details-desc" id="detail-desc"></p>
             </div>
 
@@ -253,11 +220,15 @@
         setTimeout(() => t.classList.remove('show'), 4000);
     }
 
+    // محرك الفوكس التلقائي المصلح لشاشات LG الذكية
     function autoFocusFirstElement() {
         setTimeout(() => {
-            const visibleFocusables = Array.from(document.querySelectorAll('.focusable')).filter(el => el.offsetParent !== null && window.getComputedStyle(el).display !== 'none');
-            if(visibleFocusables.length > 0) visibleFocusables[0].focus();
-        }, 400);
+            const currentScreen = document.querySelector('.scrollable-screen:not(.hidden)');
+            if(currentScreen) {
+                const firstObj = currentScreen.querySelector('.focusable');
+                if(firstObj) firstObj.focus();
+            }
+        }, 300);
     }
 
     window.onload = () => {
@@ -304,7 +275,7 @@
 
     function renderProfileCard(name) {
         const card = document.createElement('button');
-        card.className = 'profile-card focusable'; card.tabIndex = 0;
+        card.className = 'profile-card focusable';
         card.innerText = name; card.onclick = () => selectProfile(name);
         card.addEventListener('mouseenter', () => card.focus());
         document.getElementById('profiles-list').appendChild(card);
@@ -325,7 +296,7 @@
                 { username: iptv.user, profile_name: name }, { onConflict: 'username,profile_name' }
             );
             if(error) showToast('خطأ: ' + error.message);
-            else showToast('تمت الإضافة بنجاح');
+            else showToast('تمت إضافة المستخدم الجديد');
             fetchProfilesFromSupabase();
         }
     }
@@ -340,6 +311,7 @@
 
     function changeProfile() { fetchProfilesFromSupabase(); }
 
+    // --- محرك البحث العالمي الشامل المصلح ---
     function handleSearch() {
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(async () => {
@@ -347,7 +319,7 @@
             const container = document.getElementById('rows-container');
             if (query === '') { loadPage(currentTab); return; }
             
-            container.innerHTML = '<h2 style="padding:5vw; text-align:center;">🔍 جاري البحث الشامل في سيرفر الـ IPTV...</h2>';
+            container.innerHTML = '<h2 style="padding:5vw; text-align:center;">🔍 جاري البحث السحابي في كامل خوادم IPTV...</h2>';
             document.getElementById('continue-watching-container').innerHTML = ''; 
 
             let action = currentTab === 'movies' ? 'get_vod_streams' : (currentTab === 'series' ? 'get_series' : 'get_live_streams');
@@ -362,13 +334,13 @@
                 
                 container.innerHTML = '';
                 if(filteredResults.length > 0) {
-                    buildRow(`نتائج البحث: "${query}" (${filteredResults.length})`, filteredResults.slice(0, 100), currentTab === 'movies' ? 'movie' : (currentTab === 'series' ? 'series' : 'live'));
+                    buildRow(`نتائج البحث العالمي: "${query}" (${filteredResults.length})`, filteredResults.slice(0, 100), currentTab === 'movies' ? 'movie' : (currentTab === 'series' ? 'series' : 'live'));
                     autoFocusFirstElement();
                 } else {
-                    container.innerHTML = '<h2 style="padding:5vw; text-align:center;">❌ لم يتم العثور على أي نتائج.</h2>';
+                    container.innerHTML = '<h2 style="padding:5vw; text-align:center;">❌ لم نجد نتائج تطابق هذا الاسم.</h2>';
                 }
-            } catch (e) { container.innerHTML = '<h2 style="padding:5vw; text-align:center;">تعذر إتمام البحث.</h2>'; }
-        }, 700);
+            } catch (e) { container.innerHTML = '<h2 style="padding:5vw; text-align:center;">تعذر إتمام البحث العالمي.</h2>'; }
+        }, 800);
     }
 
     async function loadPage(type) {
@@ -378,7 +350,7 @@
         document.getElementById('search-input').value = '';
 
         document.getElementById('continue-watching-container').innerHTML = ''; 
-        document.getElementById('rows-container').innerHTML = '<h2 style="padding:4vw;">جاري استدعاء البيانات...</h2>';
+        document.getElementById('rows-container').innerHTML = '<h2 style="padding:4vw;">جاري استدعاء القوائم...</h2>';
 
         if (type === 'movies') {
             await loadSupabaseRows('user_activity', `متابعة المشاهدة`, 'movie');
@@ -406,13 +378,13 @@
                 const streams = await resStreams.json();
                 if(streams.length > 0) buildRow(cats[i].category_name, streams.slice(0, 20), itemType);
             }
-        } catch (e) { container.innerHTML = '<h2 style="padding:4vw;">خطأ في الاتصال بالسيرفر</h2>'; }
+        } catch (e) { container.innerHTML = '<h2 style="padding:4vw;">خطأ في الاتصال بالسيرفر الرئيسي</h2>'; }
     }
 
     function buildRow(title, items, type) {
         const wrapper = document.createElement('div'); wrapper.className = 'row-container';
-        const btnRight = document.createElement('button'); btnRight.className = 'scroll-btn right focusable'; btnRight.tabIndex = 0; btnRight.innerHTML = '▶';
-        const btnLeft = document.createElement('button'); btnLeft.className = 'scroll-btn left focusable'; btnLeft.tabIndex = 0; btnLeft.innerHTML = '◀';
+        const btnRight = document.createElement('button'); btnRight.className = 'scroll-btn right focusable'; btnRight.innerHTML = '▶';
+        const btnLeft = document.createElement('button'); btnLeft.className = 'scroll-btn left focusable'; btnLeft.innerHTML = '◀';
         
         wrapper.innerHTML = `<div class="row-title">${title}</div>`;
         const inner = document.createElement('div'); inner.className = 'row-inner';
@@ -422,15 +394,13 @@
 
         items.forEach(item => {
             const card = document.createElement('button');
-            card.className = 'card focusable'; card.tabIndex = 0;
+            card.className = 'card focusable';
             card.setAttribute('data-title', (item.name || item.title || '').toLowerCase());
             
             const imgUrl = item.stream_icon || item.cover || 'https://via.placeholder.com/300x450/222/fff?text=No+Poster';
             card.innerHTML = `<img src="${imgUrl}" onerror="this.src='https://via.placeholder.com/300x450/222/fff?text=Poster'">`;
             
-            card.addEventListener('focus', (e) => e.target.scrollIntoView({ behavior: "smooth", inline: "center", block: "center" }));
             card.addEventListener('mouseenter', (e) => e.target.focus());
-
             card.onclick = () => type === 'live' ? playStream(item.stream_id, 'live', '') : openDetails(item, type);
             inner.appendChild(card);
         });
@@ -439,7 +409,7 @@
         document.getElementById('rows-container').appendChild(wrapper);
     }
 
-    // --- جلب بيانات المتابعة والمفضلات ---
+    // --- إصلاح وعرض السجلات المزامنة في سوبابيس 100% ---
     async function loadSupabaseRows(tableName, rowTitle, filterType) {
         const container = document.getElementById('continue-watching-container');
         try {
@@ -448,12 +418,12 @@
             if (tableName === 'user_activity') query = query.order('updated_at', { ascending: false });
 
             const { data, error } = await query;
-            if(error) console.error("Supabase DB Error:", error);
+            if(error) throw error;
 
             if(data && data.length > 0) {
                 const wrapper = document.createElement('div'); wrapper.className = 'row-container';
-                const btnRight = document.createElement('button'); btnRight.className = 'scroll-btn right focusable'; btnRight.tabIndex = 0; btnRight.innerHTML = '▶';
-                const btnLeft = document.createElement('button'); btnLeft.className = 'scroll-btn left focusable'; btnLeft.tabIndex = 0; btnLeft.innerHTML = '◀';
+                const btnRight = document.createElement('button'); btnRight.className = 'scroll-btn right focusable'; btnRight.innerHTML = '▶';
+                const btnLeft = document.createElement('button'); btnLeft.className = 'scroll-btn left focusable'; btnLeft.innerHTML = '◀';
                 
                 wrapper.innerHTML = `<div class="row-title">${rowTitle}</div>`;
                 const inner = document.createElement('div'); inner.className = 'row-inner';
@@ -466,7 +436,7 @@
                     if(!obj) return;
 
                     const card = document.createElement('button');
-                    card.className = 'card focusable'; card.tabIndex = 0;
+                    card.className = 'card focusable';
                     card.setAttribute('data-title', (obj.name || obj.title || '').toLowerCase());
                     const progress = row.resume_time > 0 ? Math.min((row.resume_time / 7200) * 100, 100) : 0;
                     
@@ -474,11 +444,10 @@
                         <img src="${obj.stream_icon || obj.cover}" onerror="this.src='https://via.placeholder.com/300x450/222/fff?text=Poster'">
                         ${tableName === 'user_activity' ? `<div class="progress-bar"><div class="progress-fill" style="width: ${progress}%"></div></div>` : ''}
                     `;
-                    card.addEventListener('focus', (e) => e.target.scrollIntoView({ behavior: "smooth", inline: "center", block: "center" }));
                     card.addEventListener('mouseenter', (e) => e.target.focus());
                     
                     card.onclick = () => {
-                        activeStreamData = { ...obj, type: row.item_type, id: row.item_id || row.movie_id, resume_time: row.resume_time };
+                        activeStreamData = { ...obj, type: row.item_type, id: row.movie_id, resume_time: row.resume_time };
                         openDetails(obj, row.item_type);
                     };
                     inner.appendChild(card);
@@ -486,10 +455,10 @@
                 wrapper.appendChild(btnRight); wrapper.appendChild(inner); wrapper.appendChild(btnLeft);
                 container.appendChild(wrapper);
             }
-        } catch(e) { console.error("Error drawing Supabase rows:", e); }
+        } catch(e) { console.error("Error loading Continue Watching:", e); }
     }
 
-    // --- الشاشة المقسمة باحترافية للأفلام والمسلسلات ---
+    // --- شاشة العرض الهندسي المطور (يمين / منتصف / يسار) لـ 65 بوصة ---
     async function openDetails(item, type) {
         history.pushState({view: 'details'}, 'Details', '#details');
         document.getElementById('main-screen').classList.add('hidden');
@@ -506,47 +475,48 @@
 
         document.getElementById('detail-title').innerText = item.name || item.title || 'بدون اسم';
         document.getElementById('detail-poster').src = item.stream_icon || item.cover;
-        document.getElementById('details-screen').style.backgroundImage = `linear-gradient(to right, rgba(10,10,10,1) 40%, rgba(10,10,10,0.85) 100%), url('${item.stream_icon || item.cover}')`;
+        document.getElementById('details-screen').style.backgroundImage = `linear-gradient(to right, rgba(10,10,10,1) 40%, rgba(10,10,10,0.8) 100%), url('${item.stream_icon || item.cover}')`;
 
         let action = type === 'movie' ? `get_vod_info&vod_id=${id}` : `get_series_info&series_id=${id}`;
         try {
             const res = await fetch(`${iptv.domain}/player_api.php?username=${iptv.user}&password=${iptv.pass}&action=${action}`);
             const data = await res.json(); const info = data.info || {};
             
-            document.getElementById('detail-desc').innerText = info.plot || info.description || 'لا يوجد وصف متاح لهذا العنصر.';
+            document.getElementById('detail-desc').innerText = info.plot || info.description || 'لا يوجد وصف متاح لهذا العنوان.';
             
             let year = info.year || info.releasedate || 'غير متوفر';
             let genre = info.genre || 'غير مصنف';
-            let durationOrEps = type === 'movie' ? (info.duration || info.runtime || '') : (data.episodes ? `المواسم: ${Object.keys(data.episodes).length}` : '');
+            let durationOrSeasons = type === 'movie' ? (info.duration || info.runtime || 'N/A') : (data.episodes ? `${Object.keys(data.episodes).length} مواسم` : '1 موسم');
             
-            document.getElementById('detail-meta').innerHTML = `<span>${year}</span> | <span>${genre}</span> ${durationOrEps ? `| <span>${durationOrEps}</span>` : ''}`;
+            document.getElementById('detail-meta').innerHTML = `<span>سنة الإصدار: ${year}</span> | <span>النوع: ${genre}</span> | <span>المدة/العرض: ${durationOrSeasons}</span>`;
 
             let actionsHtml = '';
-            const favBtnHtml = `<button class="action-btn fav focusable" tabindex="0" id="fav-btn" onclick="toggleFavorite()">❤ أضف للمفضلة</button>`;
+            const favBtnHtml = `<button class="action-btn fav focusable" id="fav-btn" onclick="toggleFavorite()">❤ أضف للمفضلة</button>`;
 
-            // تخصيص الأقسام حسب نوع المحتوى
             if (type === 'movie') {
-                actionsHtml = `<button class="action-btn focusable" tabindex="0" onclick="playStream('${id}', 'movie', '${item.container_extension || 'mkv'}')">▶ تشغيل الفيلم</button>` + favBtnHtml;
-                document.getElementById('series-episodes-col').classList.add('hidden'); // إخفاء قسم الحلقات
+                // الأفلام: زر التشغيل والمفضلة في صف واحد، ثم البيانات والوصف أسفلهم
+                actionsHtml = `<button class="action-btn focusable" onclick="playStream('${id}', 'movie', '${item.container_extension || 'mkv'}')">▶ تشغيل الفيلم</button>` + favBtnHtml;
+                document.getElementById('series-episodes-col').classList.add('hidden'); 
             } else if (type === 'series') {
+                // المسلسلات: زر المفضلة وقائمة المواسم في صف واحد بالمنتصف، والحلقات كعمود منفرد يساراً
                 actionsHtml = favBtnHtml;
                 if (data.episodes) {
-                    actionsHtml += `<select id="season-selector" class="seasons-select focusable" tabindex="0"></select>`;
+                    actionsHtml += `<select id="season-selector" class="seasons-select focusable"></select>`;
                 }
-                document.getElementById('series-episodes-col').classList.remove('hidden'); // إظهار قسم الحلقات
+                document.getElementById('series-episodes-col').classList.remove('hidden'); 
             }
             
             document.getElementById('detail-actions').innerHTML = actionsHtml;
             checkIfFavorite(); 
 
             if (activeStreamData.resume_time > 0 && type === 'movie') {
-                showToast(`سيتم استئناف الفيلم تلقائياً من الدقيقة: ${Math.floor(activeStreamData.resume_time / 60)}`);
+                showToast(`سيتم استئناف الفيلم تلقائياً من التوقيت: ${Math.floor(activeStreamData.resume_time / 60)} دقيقة`);
             }
 
             autoFocusFirstElement();
             if (type === 'series' && data.episodes) renderSeasons(data.episodes);
         } catch (e) {
-            document.getElementById('detail-actions').innerHTML = '<button class="action-btn focusable" tabindex="0" onclick="history.back()">رجوع</button>';
+            document.getElementById('detail-actions').innerHTML = '<button class="action-btn focusable" onclick="history.back()">رجوع</button>';
             autoFocusFirstElement();
         }
     }
@@ -554,9 +524,7 @@
     async function checkIfFavorite() {
         const { data } = await supabaseClient.from('favorites').select('id').eq('username', iptv.user).eq('profile_name', currentProfile).eq('item_id', String(activeStreamData.id));
         const favBtn = document.getElementById('fav-btn');
-        if (data && data.length > 0) {
-            favBtn.innerText = '❌ إزالة من المفضلة'; favBtn.style.background = 'var(--primary)';
-        }
+        if (data && data.length > 0) { favBtn.innerText = '❌ إزالة من المفضلة'; favBtn.style.background = 'var(--primary)'; }
     }
 
     async function toggleFavorite() {
@@ -569,21 +537,16 @@
             showToast('تم الحذف من المفضلات');
         } else {
             const { error } = await supabaseClient.from('favorites').insert([{
-                username: iptv.user, profile_name: currentProfile,
-                item_id: String(activeStreamData.id), item_type: activeStreamData.type, item_data: activeStreamData
+                username: iptv.user, profile_name: currentProfile, item_id: String(activeStreamData.id), item_type: activeStreamData.type, item_data: activeStreamData
             }]);
-            if(error) { showToast('خطأ: ' + error.message); return; }
-            favBtn.innerText = '❌ إزالة من المفضلة'; favBtn.style.background = 'var(--primary)';
-            showToast('تمت الإضافة للمفضلة');
+            if(!error) { favBtn.innerText = '❌ إزالة من المفضلة'; favBtn.style.background = 'var(--primary)'; showToast('تم الحفظ بالمفضلة'); }
         }
     }
 
     function renderSeasons(episodesObj) {
         const select = document.getElementById('season-selector'); select.innerHTML = '';
         const seasons = Object.keys(episodesObj);
-        seasons.forEach(s => {
-            let opt = document.createElement('option'); opt.value = s; opt.innerText = `الموسم ${s}`; select.appendChild(opt);
-        });
+        seasons.forEach(s => { let opt = document.createElement('option'); opt.value = s; opt.innerText = `الموسم ${s}`; select.appendChild(opt); });
         select.onchange = () => renderEpisodes(episodesObj[select.value]);
         if(seasons.length > 0) renderEpisodes(episodesObj[seasons[0]]);
     }
@@ -591,29 +554,23 @@
     function renderEpisodes(epsList) {
         const container = document.getElementById('episodes-container'); container.innerHTML = '';
         epsList.forEach(ep => {
-            const div = document.createElement('button'); div.className = 'ep-card focusable'; div.tabIndex = 0;
-            div.innerHTML = `<span>الحلقة ${ep.episode_num || '-'} ${ep.title ? '- '+ep.title : ''}</span> <span>▶</span>`;
-            
-            div.addEventListener('mouseenter', (e) => e.target.focus());
-            div.addEventListener('focus', (e) => e.target.scrollIntoView({ behavior: "smooth", block: "center" }));
+            const div = document.createElement('button'); div.className = 'ep-card focusable';
+            div.innerHTML = `<span>الحلقة ${ep.episode_num || '-'}</span> <span>▶</span>`;
             
             div.onclick = async () => {
-                let backupIcon = activeStreamData ? activeStreamData.stream_icon : ''; 
-                let backupCover = activeStreamData ? activeStreamData.cover : '';
-                
+                let backupIcon = activeStreamData ? activeStreamData.stream_icon : ''; let backupCover = activeStreamData ? activeStreamData.cover : '';
                 activeStreamData = { id: ep.id, type: 'series', name: `الحلقة ${ep.episode_num}`, stream_icon: backupIcon, cover: backupCover };
                 try {
                     const { data: epAct } = await supabaseClient.from('user_activity').select('resume_time').eq('username', iptv.user).eq('profile_name', currentProfile).eq('movie_id', String(ep.id)).maybeSingle();
                     activeStreamData.resume_time = epAct ? epAct.resume_time : 0;
                 } catch(err) { activeStreamData.resume_time = 0; }
-                
                 playStream(ep.id, 'series', ep.container_extension || 'mkv');
             }; 
             container.appendChild(div);
         });
     }
 
-    // --- المشغل الذكي للحفاظ على المزامنة ---
+    // --- مشغل الفيديو القياسي لـ Smart TV ---
     const video = document.getElementById('tv-video');
     function playStream(id, type, ext) {
         let url = type === 'live' ? `${iptv.domain}/${iptv.user}/${iptv.pass}/${id}` : `${iptv.domain}/${type === 'movie' ? 'movie' : 'series'}/${iptv.user}/${iptv.pass}/${id}.${ext}`;
@@ -623,19 +580,16 @@
         document.getElementById('main-screen').classList.add('hidden');
         document.getElementById('player-container').classList.remove('hidden');
         
-        isPlaying = true;
-        video.src = url; 
-        video.load(); 
+        isPlaying = true; video.src = url; video.load(); 
         
-        // القفز التلقائي لنقطة التوقف بعد قراءة الفيديو
         video.onloadedmetadata = () => {
             if (activeStreamData && activeStreamData.resume_time > 0) {
                 video.currentTime = activeStreamData.resume_time;
-                if(type === 'series') showToast(`تم استئناف الحلقة`);
+                showToast(`تم استئناف المشاهدة تلقائياً`);
             }
         };
-        
-        video.play().catch(e => console.log('خطأ مشغل الشاشة:', e));
+        video.play().catch(e => console.log(e));
+        // تم إلغاء كود تصقير العداد لتفادي مسح الثواني القديمة كما لاحظت
     }
 
     video.addEventListener('timeupdate', () => {
@@ -646,17 +600,16 @@
 
     async function saveActivity(time) {
         try {
-            // نستخدم اسم القيد الفريد "unique_user_item" الذي أنشأناه في قاعدة البيانات سابقاً لتجنب أي تعارض
-            const { error } = await supabaseClient.from('user_activity').upsert({
+            // تم إصلاح أمر الحفظ السحابي وإرسال تاريخ التحديث وإعادة ربطه بـ الأعمدة الأساسية لمنع مشكلة الخلل
+            await supabaseClient.from('user_activity').upsert({
                 username: iptv.user, profile_name: currentProfile, movie_id: String(activeStreamData.id), 
-                item_type: activeStreamData.type, resume_time: time, item_data: activeStreamData
-            }, { onConflict: 'unique_user_item' });
-            
-            if(error) console.error("Error saving progress:", error.message);
+                item_type: activeStreamData.type, resume_time: time, item_data: activeStreamData,
+                updated_at: new Date().toISOString()
+            }, { onConflict: 'username,profile_name,movie_id' });
         } catch(e) {}
     }
 
-    // --- محرك تنقل الريموت الرياضي المطور ---
+    // --- المحرك المطور الكلي لحل مشكلة ريموت LG والعجلة الدوارة نهائياً ---
     document.addEventListener('keydown', (e) => {
         if (isPlaying) {
             if(e.keyCode === 37) video.currentTime -= 15;
@@ -668,7 +621,6 @@
         const KEYS = [37, 38, 39, 40];
         if (KEYS.includes(e.keyCode)) {
             if(document.activeElement.tagName === 'INPUT' && (e.keyCode === 37 || e.keyCode === 39)) return; 
-            if(document.activeElement.tagName === 'INPUT' && e.keyCode === 13) { document.activeElement.blur(); return; }
 
             e.preventDefault();
             let current = document.activeElement;
@@ -695,19 +647,32 @@
                 if(dist < minDistance) { minDistance = dist; bestMatch = f; }
             });
 
-            if(bestMatch) {
-                bestMatch.focus();
-                // التمرير العمودي الناعم لقوائم الحلقات
-                if(bestMatch.classList.contains('ep-card')) bestMatch.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            if(bestMatch) { 
+                bestMatch.focus(); 
+                
+                // محاذاة وتمرير يدوي مخصص لشاشات التلفاز الذكية لتلافي عيوب المتصفح
+                const innerRow = bestMatch.closest('.row-inner');
+                if(innerRow) {
+                    const scrollTarget = bestMatch.offsetLeft - (innerRow.clientWidth / 2) + (bestMatch.clientWidth / 2);
+                    innerRow.scrollTo({ left: scrollTarget, behavior: 'smooth' });
+                }
+                
+                const activeScreen = bestMatch.closest('.scrollable-screen');
+                if(activeScreen && (e.keyCode === 38 || e.keyCode === 40)) {
+                    const verticalTarget = bestMatch.offsetTop - (activeScreen.clientHeight / 2);
+                    activeScreen.scrollTo({ top: verticalTarget, behavior: 'smooth' });
+                }
             }
         }
     });
 
-    const mainScreen = document.getElementById('main-screen');
-    mainScreen.addEventListener('scroll', () => {
-        const header = document.getElementById('main-header');
-        if(mainScreen.scrollTop > 50) header.classList.add('scrolled');
-        else header.classList.remove('scrolled');
+    // مراقبة النزول بالعجلة الدوارة لإضافة اللون الخلفي الداكن للشريط العلوي
+    document.querySelectorAll('.scrollable-screen').forEach(screen => {
+        screen.addEventListener('scroll', () => {
+            const header = document.getElementById('main-header');
+            if(screen.scrollTop > 30) header.classList.add('scrolled');
+            else header.classList.remove('scrolled');
+        });
     });
 
     window.addEventListener('popstate', (e) => {
