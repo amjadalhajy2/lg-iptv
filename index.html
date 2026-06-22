@@ -15,12 +15,13 @@
         ::-webkit-scrollbar { display: none; }
         .hidden { display: none !important; }
 
-        /* الشاشات المستقلة - تدعم التمرير بالعجلة الدوارة بشكل كامل ومستقر */
+        /* الشاشات المستقلة - تدعم التمرير بالعجلة الدوارة بشكل مستقل وثابت */
         .scrollable-screen {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
             overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth; z-index: 50; background: var(--bg);
         }
 
+        /* شريط الإشعارات الجانبي للأخطاء والمزامنة */
         #toast {
             visibility: hidden; min-width: 25vw; background-color: rgba(229, 9, 20, 0.95); color: #fff;
             text-align: center; border-radius: 0.5vw; padding: 1vw 2vw; position: fixed;
@@ -29,7 +30,7 @@
         }
         #toast.show { visibility: visible; opacity: 1; }
 
-        /* الشريط العلوي */
+        /* الشريط العلوي الشفاف وثابت التصفح */
         header {
             position: fixed; top: 0; left: 0; width: 100%; height: 14vh; padding: 0 4vw;
             background: linear-gradient(to bottom, rgba(0,0,0,0.95) 0%, transparent 100%);
@@ -50,7 +51,7 @@
         .search-box input:focus { background: rgba(0,0,0,0.9); width: 24vw; border-color: var(--primary); box-shadow: 0 0 1.5vw var(--primary); }
         .user-info { display: flex; align-items: center; gap: 1vw; font-size: 1.3vw; font-weight: bold; }
 
-        /* منطقة القوائم الرئيسية */
+        /* منطقة القوائم */
         #main-content { padding-top: 16vh; padding-bottom: 10vh; }
         .row-container { margin-bottom: 6vh; position: relative; }
         .row-title { font-size: 1.8vw; font-weight: bold; margin: 0 4vw 2vh 0; opacity: 0.9; text-shadow: 1px 1px 3px black; }
@@ -78,16 +79,16 @@
         .progress-fill { height: 100%; background: var(--primary); }
 
         /* =========================================================
-           شاشة التفاصيل الهندسية الجديدة (توزيع ثلاثي الأبعاد)
+           شاشات التفاصيل الهندسية الجديدة والموزعة بدقة (Flex-Grid)
            ========================================================= */
         #details-screen { padding: 6vh 4vw; box-sizing: border-box; background-size: cover; background-position: center; box-shadow: inset 0 0 80vw 60vw rgba(0,0,0,0.98); z-index: 200; }
         .details-layout { display: flex; gap: 4vw; height: 88vh; align-items: stretch; }
         
-        /* يمين: الصورة بكامل طول الشاشة */
+        /* يمين الشاشة: صورة البوستر بكامل الطول القياسي */
         .details-poster-col { flex: 0 0 24vw; height: 100%; }
         .details-poster { width: 100%; height: 100%; object-fit: cover; border-radius: 1vw; box-shadow: 0 2vh 6vh rgba(0,0,0,0.9); }
 
-        /* منتصف: النصوص والبيانات والتحكم */
+        /* منتصف الشاشة: الأزرار أولاً ثم البيانات الوصفية ثم القصة والوصف أسفلهم */
         .details-info-col { flex: 1; display: flex; flex-direction: column; gap: 3.5vh; padding-top: 1vh; justify-content: flex-start; }
         .details-title { font-size: 3.8vw; font-weight: bold; margin: 0; text-shadow: 2px 2px 8px black; line-height: 1.2; }
         .action-bar { display: flex; gap: 1.5vw; align-items: center; }
@@ -101,13 +102,13 @@
         .details-meta { font-size: 1.3vw; color: #ccc; font-weight: 600; display: flex; gap: 1.5vw; text-shadow: 1px 1px 3px black; background: rgba(255,255,255,0.05); padding: 1vh 1.5vw; border-radius: 0.5vw; width: fit-content; }
         .details-desc { font-size: 1.25vw; line-height: 1.8; opacity: 0.85; text-shadow: 1px 1px 3px black; max-width: 95%; margin: 0; }
 
-        /* يسار: عمود الحلقات المنفرد للمسلسلات */
+        /* يسار الشاشة: قائمة الحلقات المخصصة للمسلسلات على عمود منفرد طولي */
         .details-episodes-col { flex: 0 0 25vw; height: 100%; overflow-y: auto; padding-left: 0.5vw; }
         .episodes-list-vertical { display: flex; flex-direction: column; gap: 1.5vh; padding-bottom: 5vh; }
         .ep-card { background: rgba(35,35,35,0.85); padding: 2vh; border-radius: 0.5vw; cursor: pointer; outline: none; transition: 0.3s; display: flex; justify-content: space-between; align-items: center; border: 0.1vw solid transparent; color: white; font-size: 1.2vw; }
         .ep-card:focus, .ep-card:hover { background: var(--text); color: black; transform: scale(1.03); border-color: white; }
 
-        /* شاشات الحسابات */
+        /* الشاشات الفرعية */
         #profiles-screen, #login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 500; }
         .profiles-container { display: flex; gap: 3vw; margin-top: 5vh; flex-wrap: wrap; justify-content: center; }
         .profile-card { width: 12vw; height: 12vw; background: #222; border-radius: 1vw; display: flex; align-items: center; justify-content: center; font-size: 2.5vw; font-weight: bold; cursor: pointer; outline: none; transition: 0.3s; border: 0.2vw solid transparent; color: white; }
@@ -148,7 +149,7 @@
     </div>
 
     <div id="profiles-screen" class="scrollable-screen hidden">
-        <h1 style="font-size: 3vw;">من يشاهد الآن?</h1>
+        <h1 style="font-size: 3vw;">من يشاهد الآن؟</h1>
         <div class="profiles-container" id="profiles-list"></div>
         <button class="action-btn focusable" style="margin-top:5vh;" onclick="openAddProfileModal()">+ مستخدم جديد</button>
     </div>
@@ -179,22 +180,18 @@
 
     <div id="details-screen" class="scrollable-screen hidden">
         <div class="details-layout" id="details-layout-container">
-            
             <div class="details-poster-col">
                 <img id="detail-poster" class="details-poster" src="">
             </div>
-
             <div class="details-info-col">
                 <h1 id="detail-title" class="details-title"></h1>
                 <div class="action-bar" id="detail-actions"></div>
                 <div class="details-meta" id="detail-meta"></div>
                 <p class="details-desc" id="detail-desc"></p>
             </div>
-
             <div class="details-episodes-col hidden" id="series-episodes-col">
                 <div id="episodes-container" class="episodes-list-vertical"></div>
             </div>
-
         </div>
     </div>
 
@@ -220,7 +217,6 @@
         setTimeout(() => t.classList.remove('show'), 4000);
     }
 
-    // محرك الفوكس التلقائي المصلح لشاشات LG الذكية
     function autoFocusFirstElement() {
         setTimeout(() => {
             const currentScreen = document.querySelector('.scrollable-screen:not(.hidden)');
@@ -311,7 +307,6 @@
 
     function changeProfile() { fetchProfilesFromSupabase(); }
 
-    // --- محرك البحث العالمي الشامل المصلح ---
     function handleSearch() {
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(async () => {
@@ -319,7 +314,7 @@
             const container = document.getElementById('rows-container');
             if (query === '') { loadPage(currentTab); return; }
             
-            container.innerHTML = '<h2 style="padding:5vw; text-align:center;">🔍 جاري البحث السحابي في كامل خوادم IPTV...</h2>';
+            container.innerHTML = '<h2 style="padding:5vw; text-align:center;">🔍 جاري البحث الشامل في كامل خوادم IPTV...</h2>';
             document.getElementById('continue-watching-container').innerHTML = ''; 
 
             let action = currentTab === 'movies' ? 'get_vod_streams' : (currentTab === 'series' ? 'get_series' : 'get_live_streams');
@@ -409,7 +404,7 @@
         document.getElementById('rows-container').appendChild(wrapper);
     }
 
-    // --- إصلاح وعرض السجلات المزامنة في سوبابيس 100% ---
+    // --- نظام سوبابيس المصلح بالكامل للمتابعة والمفضلات ---
     async function loadSupabaseRows(tableName, rowTitle, filterType) {
         const container = document.getElementById('continue-watching-container');
         try {
@@ -418,7 +413,10 @@
             if (tableName === 'user_activity') query = query.order('updated_at', { ascending: false });
 
             const { data, error } = await query;
-            if(error) throw error;
+            if(error) {
+                showToast("خطأ سوبابيس: " + error.message);
+                throw error;
+            }
 
             if(data && data.length > 0) {
                 const wrapper = document.createElement('div'); wrapper.className = 'row-container';
@@ -455,10 +453,13 @@
                 wrapper.appendChild(btnRight); wrapper.appendChild(inner); wrapper.appendChild(btnLeft);
                 container.appendChild(wrapper);
             }
-        } catch(e) { console.error("Error loading Continue Watching:", e); }
+        } catch(e) { 
+            showToast("فشل جلب متابعة المشاهدة عينات");
+            console.error("Error loading Continue Watching:", e); 
+        }
     }
 
-    // --- شاشة العرض الهندسي المطور (يمين / منتصف / يسار) لـ 65 بوصة ---
+    // --- شاشة العرض الاحترافية المقسمة بدقة عالية ---
     async function openDetails(item, type) {
         history.pushState({view: 'details'}, 'Details', '#details');
         document.getElementById('main-screen').classList.add('hidden');
@@ -494,11 +495,9 @@
             const favBtnHtml = `<button class="action-btn fav focusable" id="fav-btn" onclick="toggleFavorite()">❤ أضف للمفضلة</button>`;
 
             if (type === 'movie') {
-                // الأفلام: زر التشغيل والمفضلة في صف واحد، ثم البيانات والوصف أسفلهم
                 actionsHtml = `<button class="action-btn focusable" onclick="playStream('${id}', 'movie', '${item.container_extension || 'mkv'}')">▶ تشغيل الفيلم</button>` + favBtnHtml;
                 document.getElementById('series-episodes-col').classList.add('hidden'); 
             } else if (type === 'series') {
-                // المسلسلات: زر المفضلة وقائمة المواسم في صف واحد بالمنتصف، والحلقات كعمود منفرد يساراً
                 actionsHtml = favBtnHtml;
                 if (data.episodes) {
                     actionsHtml += `<select id="season-selector" class="seasons-select focusable"></select>`;
@@ -553,24 +552,33 @@
 
     function renderEpisodes(epsList) {
         const container = document.getElementById('episodes-container'); container.innerHTML = '';
+        const parentSeriesData = { ...activeStreamData }; 
+
         epsList.forEach(ep => {
             const div = document.createElement('button'); div.className = 'ep-card focusable';
             div.innerHTML = `<span>الحلقة ${ep.episode_num || '-'}</span> <span>▶</span>`;
+            div.addEventListener('mouseenter', (e) => e.target.focus());
             
             div.onclick = async () => {
-                let backupIcon = activeStreamData ? activeStreamData.stream_icon : ''; let backupCover = activeStreamData ? activeStreamData.cover : '';
-                activeStreamData = { id: ep.id, type: 'series', name: `الحلقة ${ep.episode_num}`, stream_icon: backupIcon, cover: backupCover };
+                // دمج الحلقة مع الكائن الرئيسي لحفظ الحاوية الأصلية للمسلسل
+                activeStreamData = { 
+                    ...parentSeriesData,
+                    episode_id: ep.id, 
+                    episode_name: `الحلقة ${ep.episode_num}`,
+                    container_extension: ep.container_extension || 'mkv'
+                };
                 try {
-                    const { data: epAct } = await supabaseClient.from('user_activity').select('resume_time').eq('username', iptv.user).eq('profile_name', currentProfile).eq('movie_id', String(ep.id)).maybeSingle();
+                    const { data: epAct } = await supabaseClient.from('user_activity').select('resume_time').eq('username', iptv.user).eq('profile_name', currentProfile).eq('movie_id', String(parentSeriesData.id)).maybeSingle();
                     activeStreamData.resume_time = epAct ? epAct.resume_time : 0;
                 } catch(err) { activeStreamData.resume_time = 0; }
+                
                 playStream(ep.id, 'series', ep.container_extension || 'mkv');
             }; 
             container.appendChild(div);
         });
     }
 
-    // --- مشغل الفيديو القياسي لـ Smart TV ---
+    // --- مشغل الفيديو الذكي القياسي لـ Smart TV ---
     const video = document.getElementById('tv-video');
     function playStream(id, type, ext) {
         let url = type === 'live' ? `${iptv.domain}/${iptv.user}/${iptv.pass}/${id}` : `${iptv.domain}/${type === 'movie' ? 'movie' : 'series'}/${iptv.user}/${iptv.pass}/${id}.${ext}`;
@@ -589,7 +597,6 @@
             }
         };
         video.play().catch(e => console.log(e));
-        // تم إلغاء كود تصقير العداد لتفادي مسح الثواني القديمة كما لاحظت
     }
 
     video.addEventListener('timeupdate', () => {
@@ -600,16 +607,29 @@
 
     async function saveActivity(time) {
         try {
-            // تم إصلاح أمر الحفظ السحابي وإرسال تاريخ التحديث وإعادة ربطه بـ الأعمدة الأساسية لمنع مشكلة الخلل
-            await supabaseClient.from('user_activity').upsert({
+            // تم تصحيح الـ onConflict نهائياً بإرسال مصفوفة الأعمدة الحقيقية وإجبار الخادم على تحديث الوقت
+            const { error } = await supabaseClient.from('user_activity').upsert({
                 username: iptv.user, profile_name: currentProfile, movie_id: String(activeStreamData.id), 
                 item_type: activeStreamData.type, resume_time: time, item_data: activeStreamData,
                 updated_at: new Date().toISOString()
             }, { onConflict: 'username,profile_name,movie_id' });
+            
+            if(error) showToast("فشل الحفظ السحابي: " + error.message);
         } catch(e) {}
     }
 
-    // --- المحرك المطور الكلي لحل مشكلة ريموت LG والعجلة الدوارة نهائياً ---
+    // --- محرك تنقل الريموت الفضائي المتقدم والذكي (ثابت الإحداثيات) ---
+    function getStaticLayoutRect(el) {
+        let x = 0, y = 0;
+        let width = el.offsetWidth; let height = el.offsetHeight;
+        let currentEl = el;
+        while(currentEl) {
+            x += currentEl.offsetLeft; y += currentEl.offsetTop;
+            currentEl = currentEl.offsetParent;
+        }
+        return { left: x, top: y, right: x + width, bottom: y + height, width, height };
+    }
+
     document.addEventListener('keydown', (e) => {
         if (isPlaying) {
             if(e.keyCode === 37) video.currentTime -= 15;
@@ -626,23 +646,23 @@
             let current = document.activeElement;
             if (!current || !current.classList.contains('focusable')) { autoFocusFirstElement(); return; }
 
-            let rect = current.getBoundingClientRect();
+            let rect = getStaticLayoutRect(current);
             let focusables = Array.from(document.querySelectorAll('.focusable')).filter(el => el.offsetParent !== null && window.getComputedStyle(el).display !== 'none');
             let bestMatch = null; let minDistance = Infinity;
 
             focusables.forEach(f => {
                 if(f === current) return;
-                let r = f.getBoundingClientRect();
+                let r = getStaticLayoutRect(f);
                 let dx = 0, dy = 0, dist = Infinity;
 
-                if(e.keyCode === 37 && r.right <= rect.left + 10) { 
-                    dx = rect.left - r.right; dy = Math.abs((rect.top+rect.bottom)/2 - (r.top+r.bottom)/2); dist = dx + dy*10;
-                } else if(e.keyCode === 39 && r.left >= rect.right - 10) { 
-                    dx = r.left - rect.right; dy = Math.abs((rect.top+rect.bottom)/2 - (r.top+r.bottom)/2); dist = dx + dy*10;
-                } else if(e.keyCode === 38 && r.bottom <= rect.top + 10) { 
-                    dy = rect.top - r.bottom; dx = Math.abs((rect.left+rect.right)/2 - (r.left+r.right)/2); dist = dy + dx*10;
-                } else if(e.keyCode === 40 && r.top >= rect.bottom - 10) { 
-                    dy = r.top - rect.bottom; dx = Math.abs((rect.left+rect.right)/2 - (r.left+r.right)/2); dist = dy + dx*10;
+                if(e.keyCode === 37 && r.right <= rect.left + 5) { 
+                    dx = rect.left - r.right; dy = Math.abs((rect.top+rect.bottom)/2 - (r.top+r.bottom)/2); dist = dx + dy*4;
+                } else if(e.keyCode === 39 && r.left >= rect.right - 5) { 
+                    dx = r.left - rect.right; dy = Math.abs((rect.top+rect.bottom)/2 - (r.top+r.bottom)/2); dist = dx + dy*4;
+                } else if(e.keyCode === 38 && r.bottom <= rect.top + 5) { 
+                    dy = rect.top - r.bottom; dx = Math.abs((rect.left+rect.right)/2 - (r.left+r.right)/2); dist = dy + dx*4;
+                } else if(e.keyCode === 40 && r.top >= rect.bottom - 5) { 
+                    dy = r.top - rect.bottom; dx = Math.abs((rect.left+rect.right)/2 - (r.left+r.right)/2); dist = dy + dx*4;
                 }
                 if(dist < minDistance) { minDistance = dist; bestMatch = f; }
             });
@@ -650,7 +670,7 @@
             if(bestMatch) { 
                 bestMatch.focus(); 
                 
-                // محاذاة وتمرير يدوي مخصص لشاشات التلفاز الذكية لتلافي عيوب المتصفح
+                // محاذاة تلقائية دقيقة وسلسة للمستودعات الأفقية والعمودية للشاشة الذكية
                 const innerRow = bestMatch.closest('.row-inner');
                 if(innerRow) {
                     const scrollTarget = bestMatch.offsetLeft - (innerRow.clientWidth / 2) + (bestMatch.clientWidth / 2);
@@ -666,7 +686,6 @@
         }
     });
 
-    // مراقبة النزول بالعجلة الدوارة لإضافة اللون الخلفي الداكن للشريط العلوي
     document.querySelectorAll('.scrollable-screen').forEach(screen => {
         screen.addEventListener('scroll', () => {
             const header = document.getElementById('main-header');
