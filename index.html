@@ -78,20 +78,18 @@
         .progress-bar { position: absolute; bottom: 0; width: 100%; height: 0.8vh; background: rgba(0,0,0,0.6); }
         .progress-fill { height: 100%; background: var(--primary); }
 
-        /* =========================================================
-           شاشات التفاصيل الهندسية الجديدة والموزعة بدقة (Flex-Grid)
-           ========================================================= */
+        /* شاشة التفاصيل الهندسية (توزيع ثلاثي الأبعاد لـ 65 بوصة) */
         #details-screen { padding: 6vh 4vw; box-sizing: border-box; background-size: cover; background-position: center; box-shadow: inset 0 0 80vw 60vw rgba(0,0,0,0.98); z-index: 200; }
         .details-layout { display: flex; gap: 4vw; height: 88vh; align-items: stretch; }
         
-        /* يمين الشاشة: صورة البوستر بكامل الطول القياسي */
+        /* يمين: الصورة بكامل طول الشاشة */
         .details-poster-col { flex: 0 0 24vw; height: 100%; }
         .details-poster { width: 100%; height: 100%; object-fit: cover; border-radius: 1vw; box-shadow: 0 2vh 6vh rgba(0,0,0,0.9); }
 
-        /* منتصف الشاشة: الأزرار أولاً ثم البيانات الوصفية ثم القصة والوصف أسفلهم */
+        /* منتصف: الأزرار أولاً ثم البيانات الوصفية ثم القصة والوصف أسفلهم */
         .details-info-col { flex: 1; display: flex; flex-direction: column; gap: 3.5vh; padding-top: 1vh; justify-content: flex-start; }
         .details-title { font-size: 3.8vw; font-weight: bold; margin: 0; text-shadow: 2px 2px 8px black; line-height: 1.2; }
-        .action-bar { display: flex; gap: 1.5vw; align-items: center; }
+        .action-bar { display: flex; gap: 1.5vw; align-items: center; flex-wrap: wrap; }
         
         .action-btn { background: var(--text); color: black; border: none; padding: 1.5vh 3vw; font-size: 1.4vw; font-weight: bold; border-radius: 0.5vw; cursor: pointer; outline: none; transition: 0.3s; display: flex; align-items: center; gap: 0.5vw; }
         .action-btn.fav { background: rgba(50,50,50,0.8); color: white; border: 0.1vw solid white; backdrop-filter: blur(5px); }
@@ -102,14 +100,14 @@
         .details-meta { font-size: 1.3vw; color: #ccc; font-weight: 600; display: flex; gap: 1.5vw; text-shadow: 1px 1px 3px black; background: rgba(255,255,255,0.05); padding: 1vh 1.5vw; border-radius: 0.5vw; width: fit-content; }
         .details-desc { font-size: 1.25vw; line-height: 1.8; opacity: 0.85; text-shadow: 1px 1px 3px black; max-width: 95%; margin: 0; }
 
-        /* يسار الشاشة: قائمة الحلقات المخصصة للمسلسلات على عمود منفرد طولي */
+        /* يسار: عمود الحلقات المنفرد للمسلسلات */
         .details-episodes-col { flex: 0 0 25vw; height: 100%; overflow-y: auto; padding-left: 0.5vw; }
         .episodes-list-vertical { display: flex; flex-direction: column; gap: 1.5vh; padding-bottom: 5vh; }
         .ep-card { background: rgba(35,35,35,0.85); padding: 2vh; border-radius: 0.5vw; cursor: pointer; outline: none; transition: 0.3s; display: flex; justify-content: space-between; align-items: center; border: 0.1vw solid transparent; color: white; font-size: 1.2vw; }
         .ep-card:focus, .ep-card:hover { background: var(--text); color: black; transform: scale(1.03); border-color: white; }
 
         /* الشاشات الفرعية */
-        #profiles-screen, #login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 500; }
+        #profiles-screen, #login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: var(--bg); position: fixed; top:0; width:100%; z-index: 500; }
         .profiles-container { display: flex; gap: 3vw; margin-top: 5vh; flex-wrap: wrap; justify-content: center; }
         .profile-card { width: 12vw; height: 12vw; background: #222; border-radius: 1vw; display: flex; align-items: center; justify-content: center; font-size: 2.5vw; font-weight: bold; cursor: pointer; outline: none; transition: 0.3s; border: 0.2vw solid transparent; color: white; }
         .profile-card:focus, .profile-card:hover { background: var(--text); color: black; transform: scale(1.1); border-color: var(--primary); }
@@ -314,7 +312,7 @@
             const container = document.getElementById('rows-container');
             if (query === '') { loadPage(currentTab); return; }
             
-            container.innerHTML = '<h2 style="padding:5vw; text-align:center;">🔍 جاري البحث الشامل في كامل خوادم IPTV...</h2>';
+            container.innerHTML = '<h2 style="padding:5vw; text-align:center;">🔍 جاري البحث السحابي في كامل خوادم IPTV...</h2>';
             document.getElementById('continue-watching-container').innerHTML = ''; 
 
             let action = currentTab === 'movies' ? 'get_vod_streams' : (currentTab === 'series' ? 'get_series' : 'get_live_streams');
@@ -404,61 +402,65 @@
         document.getElementById('rows-container').appendChild(wrapper);
     }
 
-    // --- نظام سوبابيس المصلح بالكامل للمتابعة والمفضلات ---
-async function loadSupabaseRows(tableName, rowTitle, filterType) {
-    const container = document.getElementById('continue-watching-container');
-    try {
-        let query = supabaseClient.from(tableName).select('*').eq('username', iptv.user).eq('profile_name', currentProfile);
-        if (filterType) query = query.eq('item_type', filterType);
-        if (tableName === 'user_activity') query = query.order('updated_at', { ascending: false });
+    // --- جلب وعرض البيانات من سوبابيس (المتابعة والمفضلات) ---
+    async function loadSupabaseRows(tableName, rowTitle, filterType) {
+        const container = document.getElementById('continue-watching-container');
+        try {
+            let query = supabaseClient.from(tableName).select('*').eq('username', iptv.user).eq('profile_name', currentProfile);
+            if (filterType) query = query.eq('item_type', filterType);
+            if (tableName === 'user_activity') query = query.order('updated_at', { ascending: false });
 
-        const { data, error } = await query;
-        if(error) throw error; // إرسال الخطأ مباشرة إلى بند catch ليتم عرضه
+            const { data, error } = await query;
+            if(error) throw error;
 
-        if(data && data.length > 0) {
-            const wrapper = document.createElement('div'); wrapper.className = 'row-container';
-            const btnRight = document.createElement('button'); btnRight.className = 'scroll-btn right focusable'; btnRight.innerHTML = '▶';
-            const btnLeft = document.createElement('button'); btnLeft.className = 'scroll-btn left focusable'; btnLeft.innerHTML = '◀';
-            
-            wrapper.innerHTML = `<div class="row-title">${rowTitle}</div>`;
-            const inner = document.createElement('div'); inner.className = 'row-inner';
-            btnRight.onclick = () => inner.scrollBy({ left: 800, behavior: 'smooth' });
-            btnLeft.onclick = () => inner.scrollBy({ left: -800, behavior: 'smooth' });
-
-            data.forEach(row => {
-                let obj = row.item_data;
-                if(typeof obj === 'string') { try { obj = JSON.parse(obj); } catch(e) {} }
-                if(!obj) return;
-
-                const card = document.createElement('button');
-                card.className = 'card focusable'; card.tabIndex = 0;
-                card.setAttribute('data-title', (obj.name || obj.title || '').toLowerCase());
-                const progress = row.resume_time > 0 ? Math.min((row.resume_time / 7200) * 100, 100) : 0;
+            if(data && data.length > 0) {
+                const wrapper = document.createElement('div'); wrapper.className = 'row-container';
+                const btnRight = document.createElement('button'); btnRight.className = 'scroll-btn right focusable'; btnRight.innerHTML = '▶';
+                const btnLeft = document.createElement('button'); btnLeft.className = 'scroll-btn left focusable'; btnLeft.innerHTML = '◀';
                 
-                card.innerHTML = `
-                    <img src="${obj.stream_icon || obj.cover}" onerror="this.src='https://via.placeholder.com/300x450/222/fff?text=Poster'">
-                    ${tableName === 'user_activity' ? `<div class="progress-bar"><div class="progress-fill" style="width: ${progress}%"></div></div>` : ''}
-                `;
-                card.addEventListener('mouseenter', (e) => e.target.focus());
-                
-                card.onclick = () => {
-                    // تم تعديل جلب المعرف ليدعم حقول المفرة والمتابعة معاً دون تعارض
-                    activeStreamData = { ...obj, type: row.item_type, id: row.movie_id || row.item_id, resume_time: row.resume_time };
-                    openDetails(obj, row.item_type);
-                };
-                inner.appendChild(card);
-            });
-            wrapper.appendChild(btnRight); wrapper.appendChild(inner); wrapper.appendChild(btnLeft);
-            container.appendChild(wrapper);
-        }
-    } catch(e) { 
-        // عرض نص الخطأ الفعلي على الشاشة لمعرفة السبب بدقة (مثل نقص عمود أو اسم جدول خاطئ)
-        showToast("خطأ سوبابيس: " + (e.message || e));
-        console.error("Error loading Continue Watching:", e); 
+                wrapper.innerHTML = `<div class="row-title">${rowTitle}</div>`;
+                const inner = document.createElement('div'); inner.className = 'row-inner';
+                btnRight.onclick = () => inner.scrollBy({ left: 800, behavior: 'smooth' });
+                btnLeft.onclick = () => inner.scrollBy({ left: -800, behavior: 'smooth' });
+
+                data.forEach(row => {
+                    let obj = row.item_data;
+                    if(typeof obj === 'string') { try { obj = JSON.parse(obj); } catch(e) {} }
+                    if(!obj) return;
+
+                    const card = document.createElement('button');
+                    card.className = 'card focusable';
+                    card.setAttribute('data-title', (obj.name || obj.title || '').toLowerCase());
+                    const progress = row.resume_time > 0 ? Math.min((row.resume_time / 7200) * 100, 100) : 0;
+                    
+                    card.innerHTML = `
+                        <img src="${obj.stream_icon || obj.cover}" onerror="this.src='https://via.placeholder.com/300x450/222/fff?text=Poster'">
+                        ${tableName === 'user_activity' ? `<div class="progress-bar"><div class="progress-fill" style="width: ${progress}%"></div></div>` : ''}
+                    `;
+                    card.addEventListener('mouseenter', (e) => e.target.focus());
+                    
+                    card.onclick = () => {
+                        // تعديل استراتيجي: نمرر كائن المسلسل العام المحفوظ سحابياً بالكامل، مع تزويده ببيانات الحلقة التنافسية المحفوظة
+                        activeStreamData = { 
+                            ...obj, 
+                            type: row.item_type, 
+                            id: row.movie_id, 
+                            resume_time: row.resume_time,
+                            current_episode_id: obj.current_episode_id || null,
+                            current_episode_num: obj.current_episode_num || null,
+                            current_episode_ext: obj.current_episode_ext || 'mkv'
+                        };
+                        openDetails(obj, row.item_type);
+                    };
+                    inner.appendChild(card);
+                });
+                wrapper.appendChild(btnRight); wrapper.appendChild(inner); wrapper.appendChild(btnLeft);
+                container.appendChild(wrapper);
+            }
+        } catch(e) { console.error("Error loading Continue Watching:", e); }
     }
-}
 
-    // --- شاشة العرض الاحترافية المقسمة بدقة عالية ---
+    // --- شاشة العرض الفاخرة ثلاثية الأبعاد (مصححة للمسلسلات) ---
     async function openDetails(item, type) {
         history.pushState({view: 'details'}, 'Details', '#details');
         document.getElementById('main-screen').classList.add('hidden');
@@ -467,12 +469,29 @@ async function loadSupabaseRows(tableName, rowTitle, filterType) {
         
         const id = item.stream_id || item.series_id || (activeStreamData ? activeStreamData.id : null);
         
+        // التحقق الآمن والمباشر من تقدم المشاهدة للمسلسل/الفيلم من الجدول لمنع التصفير التلقائي
         try {
-            const { data: currentAct } = await supabaseClient.from('user_activity').select('resume_time').eq('username', iptv.user).eq('profile_name', currentProfile).eq('movie_id', String(id)).maybeSingle();
-            let liveResumeTime = currentAct ? currentAct.resume_time : 0;
-            activeStreamData = { ...item, type, id, resume_time: liveResumeTime };
+            const { data: currentAct } = await supabaseClient.from('user_activity').select('*').eq('username', iptv.user).eq('profile_name', currentProfile).eq('movie_id', String(id)).maybeSingle();
+            
+            if(currentAct) {
+                let parsedData = currentAct.item_data;
+                if(typeof parsedData === 'string') parsedData = JSON.parse(parsedData);
+                
+                activeStreamData = { 
+                    ...item, 
+                    type, 
+                    id, 
+                    resume_time: currentAct.resume_time,
+                    current_episode_id: parsedData.current_episode_id || null,
+                    current_episode_num: parsedData.current_episode_num || null,
+                    current_episode_ext: parsedData.current_episode_ext || 'mkv'
+                };
+            } else {
+                activeStreamData = { ...item, type, id, resume_time: 0 };
+            }
         } catch (err) { activeStreamData = { ...item, type, id, resume_time: 0 }; }
 
+        // تعبئة البيانات العامة للمسلسل/الفيلم دائماً (منعاً لظهور بيانات الحلقة المنفردة)
         document.getElementById('detail-title').innerText = item.name || item.title || 'بدون اسم';
         document.getElementById('detail-poster').src = item.stream_icon || item.cover;
         document.getElementById('details-screen').style.backgroundImage = `linear-gradient(to right, rgba(10,10,10,1) 40%, rgba(10,10,10,0.8) 100%), url('${item.stream_icon || item.cover}')`;
@@ -498,6 +517,12 @@ async function loadSupabaseRows(tableName, rowTitle, filterType) {
                 document.getElementById('series-episodes-col').classList.add('hidden'); 
             } else if (type === 'series') {
                 actionsHtml = favBtnHtml;
+                
+                // إضافة زر السحر السحابي: "متابعة المشاهدة" للمسلسلات إذا توفرت بيانات حلقة سابقة
+                if (activeStreamData.current_episode_id && activeStreamData.resume_time > 0) {
+                    actionsHtml = `<button class="action-btn focusable" style="background:var(--primary); color:white;" onclick="resumeSeriesPlayback()">▶ متابعة المشاهدة (حلقة ${activeStreamData.current_episode_num})</button>` + actionsHtml;
+                }
+                
                 if (data.episodes) {
                     actionsHtml += `<select id="season-selector" class="seasons-select focusable"></select>`;
                 }
@@ -507,15 +532,18 @@ async function loadSupabaseRows(tableName, rowTitle, filterType) {
             document.getElementById('detail-actions').innerHTML = actionsHtml;
             checkIfFavorite(); 
 
-            if (activeStreamData.resume_time > 0 && type === 'movie') {
-                showToast(`سيتم استئناف الفيلم تلقائياً من التوقيت: ${Math.floor(activeStreamData.resume_time / 60)} دقيقة`);
-            }
-
             autoFocusFirstElement();
             if (type === 'series' && data.episodes) renderSeasons(data.episodes);
         } catch (e) {
             document.getElementById('detail-actions').innerHTML = '<button class="action-btn focusable" onclick="history.back()">رجوع</button>';
             autoFocusFirstElement();
+        }
+    }
+
+    function resumeSeriesPlayback() {
+        if (activeStreamData && activeStreamData.current_episode_id) {
+            // توجيه المشغل الفعلي مباشرة لتشغيل الحلقة الأخيرة بنفس الامتداد المتناسق
+            playStream(activeStreamData.current_episode_id, 'series', activeStreamData.current_episode_ext || 'mkv');
         }
     }
 
@@ -549,27 +577,24 @@ async function loadSupabaseRows(tableName, rowTitle, filterType) {
         if(seasons.length > 0) renderEpisodes(episodesObj[seasons[0]]);
     }
 
+    // --- هندسة الحلقات المصححة (تمنع تشويه كائن المسلسل الأصلي) ---
     function renderEpisodes(epsList) {
         const container = document.getElementById('episodes-container'); container.innerHTML = '';
-        const parentSeriesData = { ...activeStreamData }; 
-
         epsList.forEach(ep => {
-            const div = document.createElement('button'); div.className = 'ep-card focusable';
+            const div = document.createElement('button'); div.className = 'ep-card focusable'; div.tabIndex = 0;
             div.innerHTML = `<span>الحلقة ${ep.episode_num || '-'}</span> <span>▶</span>`;
-            div.addEventListener('mouseenter', (e) => e.target.focus());
             
-            div.onclick = async () => {
-                // دمج الحلقة مع الكائن الرئيسي لحفظ الحاوية الأصلية للمسلسل
-                activeStreamData = { 
-                    ...parentSeriesData,
-                    episode_id: ep.id, 
-                    episode_name: `الحلقة ${ep.episode_num}`,
-                    container_extension: ep.container_extension || 'mkv'
-                };
-                try {
-                    const { data: epAct } = await supabaseClient.from('user_activity').select('resume_time').eq('username', iptv.user).eq('profile_name', currentProfile).eq('movie_id', String(parentSeriesData.id)).maybeSingle();
-                    activeStreamData.resume_time = epAct ? epAct.resume_time : 0;
-                } catch(err) { activeStreamData.resume_time = 0; }
+            div.addEventListener('mouseenter', (e) => e.target.focus());
+            div.addEventListener('focus', (e) => e.target.scrollIntoView({ behavior: "smooth", block: "center" }));
+            
+            div.onclick = () => {
+                // بدلاً من مسح الكائن؛ نقوم فقط بإلحاق سمات الحلقة الشغالة حالياً بالمسلسل الرئيسي
+                activeStreamData.current_episode_id = String(ep.id);
+                activeStreamData.current_episode_num = ep.episode_num;
+                activeStreamData.current_episode_ext = ep.container_extension || 'mkv';
+                
+                // تصفير تقدم المشاهدة مؤقتاً للحلقة الجديدة إلا إذا كانت نفس الحلقة السابقة
+                activeStreamData.resume_time = 0; 
                 
                 playStream(ep.id, 'series', ep.container_extension || 'mkv');
             }; 
@@ -577,7 +602,7 @@ async function loadSupabaseRows(tableName, rowTitle, filterType) {
         });
     }
 
-    // --- مشغل الفيديو الذكي القياسي لـ Smart TV ---
+    // --- مشغل الميديا الذكي والقفز للوقت المحفوظ القياسي ---
     const video = document.getElementById('tv-video');
     function playStream(id, type, ext) {
         let url = type === 'live' ? `${iptv.domain}/${iptv.user}/${iptv.pass}/${id}` : `${iptv.domain}/${type === 'movie' ? 'movie' : 'series'}/${iptv.user}/${iptv.pass}/${id}.${ext}`;
@@ -590,9 +615,10 @@ async function loadSupabaseRows(tableName, rowTitle, filterType) {
         isPlaying = true; video.src = url; video.load(); 
         
         video.onloadedmetadata = () => {
+            // القفز التلقائي الآمن فقط للفيلم المطابق أو حلقة المسلسل النشطة سحابياً لمنع تصفير التوقيت
             if (activeStreamData && activeStreamData.resume_time > 0) {
                 video.currentTime = activeStreamData.resume_time;
-                showToast(`تم استئناف المشاهدة تلقائياً`);
+                showToast(`تم استئناف العرض بنجاح من آخر توقف.`);
             }
         };
         video.play().catch(e => console.log(e));
@@ -606,26 +632,21 @@ async function loadSupabaseRows(tableName, rowTitle, filterType) {
 
     async function saveActivity(time) {
         try {
-            // تم تصحيح الـ onConflict نهائياً بإرسال مصفوفة الأعمدة الحقيقية وإجبار الخادم على تحديث الوقت
-            const { error } = await supabaseClient.from('user_activity').upsert({
+            // إرسال كائن المسلسل المكتمل والنظيف دون تغيير سمة الاسم لتظل واجهة المتابعة تقرأ اسم المسلسل بكفاءة
+            await supabaseClient.from('user_activity').upsert({
                 username: iptv.user, profile_name: currentProfile, movie_id: String(activeStreamData.id), 
                 item_type: activeStreamData.type, resume_time: time, item_data: activeStreamData,
                 updated_at: new Date().toISOString()
             }, { onConflict: 'username,profile_name,movie_id' });
-            
-            if(error) showToast("فشل الحفظ السحابي: " + error.message);
         } catch(e) {}
     }
 
-    // --- محرك تنقل الريموت الفضائي المتقدم والذكي (ثابت الإحداثيات) ---
+    // --- محرك التنقل الفضائي القياسي لريموت التلفاز والعجلة الماجيك ---
     function getStaticLayoutRect(el) {
         let x = 0, y = 0;
         let width = el.offsetWidth; let height = el.offsetHeight;
         let currentEl = el;
-        while(currentEl) {
-            x += currentEl.offsetLeft; y += currentEl.offsetTop;
-            currentEl = currentEl.offsetParent;
-        }
+        while(currentEl) { x += currentEl.offsetLeft; y += currentEl.offsetTop; currentEl = currentEl.offsetParent; }
         return { left: x, top: y, right: x + width, bottom: y + height, width, height };
     }
 
@@ -668,14 +689,11 @@ async function loadSupabaseRows(tableName, rowTitle, filterType) {
 
             if(bestMatch) { 
                 bestMatch.focus(); 
-                
-                // محاذاة تلقائية دقيقة وسلسة للمستودعات الأفقية والعمودية للشاشة الذكية
                 const innerRow = bestMatch.closest('.row-inner');
                 if(innerRow) {
                     const scrollTarget = bestMatch.offsetLeft - (innerRow.clientWidth / 2) + (bestMatch.clientWidth / 2);
                     innerRow.scrollTo({ left: scrollTarget, behavior: 'smooth' });
                 }
-                
                 const activeScreen = bestMatch.closest('.scrollable-screen');
                 if(activeScreen && (e.keyCode === 38 || e.keyCode === 40)) {
                     const verticalTarget = bestMatch.offsetTop - (activeScreen.clientHeight / 2);
