@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1920, user-scalable=no">
-    <title>Stream IPTV - TV UI</title>
+    <title>Stream IPTV - Pro TV UI</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --bg: #0a0a0a; --primary: #e50914; --text: #ffffff; --card-w: 16vw; --card-h: 24vw; }
@@ -14,37 +14,43 @@
         ::-webkit-scrollbar { display: none; }
         .hidden { display: none !important; }
 
-        /* 1. الشريط العلوي الشفاف مع البحث */
+        /* شريط الإشعارات (Toast) لرسائل سوبابيس */
+        #toast {
+            visibility: hidden; min-width: 20vw; background-color: var(--primary); color: #fff;
+            text-align: center; border-radius: 0.5vw; padding: 1vw; position: fixed;
+            z-index: 10000; right: 2vw; bottom: 2vh; font-size: 1.2vw; font-weight: bold;
+            box-shadow: 0 1vh 2vh rgba(0,0,0,0.8); transition: opacity 0.5s; opacity: 0;
+        }
+        #toast.show { visibility: visible; opacity: 1; }
+
+        /* الشريط العلوي */
         header {
             position: fixed; top: 0; width: 100%; height: 12vh; padding: 0 4vw;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%);
+            background: linear-gradient(to bottom, rgba(0,0,0,0.95) 0%, transparent 100%);
             display: flex; align-items: center; justify-content: space-between; z-index: 100; box-sizing: border-box;
             text-shadow: 2px 2px 5px rgba(0,0,0,0.8); transition: background 0.3s;
         }
-        header.scrolled { background: rgba(10,10,10,0.95); backdrop-filter: blur(10px); }
+        header.scrolled { background: rgba(10,10,10,0.95); backdrop-filter: blur(10px); border-bottom: 0.1vw solid rgba(255,255,255,0.1); }
         .logo { font-size: 2.5vw; font-weight: 900; color: var(--primary); letter-spacing: 2px; }
         .nav-links { display: flex; gap: 2vw; align-items: center; }
         .nav-item { background: transparent; border: none; color: white; font-size: 1.5vw; font-weight: 600; opacity: 0.7; cursor: pointer; padding: 0.5vw 1vw; outline: none; border-radius: 5px; transition: 0.3s; }
         .nav-item:focus, .nav-item:hover, .nav-item.active { opacity: 1; transform: scale(1.1); background: rgba(255,255,255,0.15); }
         
-        /* شريط البحث */
         .search-box input {
             background: rgba(255,255,255,0.15); border: 0.1vw solid rgba(255,255,255,0.3);
             color: white; padding: 0.8vw 1.5vw; border-radius: 30px; font-size: 1.2vw;
             outline: none; transition: 0.3s; width: 12vw; font-family: inherit;
         }
-        .search-box input:focus { background: rgba(0,0,0,0.8); width: 20vw; border-color: var(--primary); }
-        .search-box input::placeholder { color: rgba(255,255,255,0.5); }
-        
+        .search-box input:focus { background: rgba(0,0,0,0.8); width: 22vw; border-color: var(--primary); }
         .user-info { display: flex; align-items: center; gap: 1vw; font-size: 1.3vw; font-weight: bold; }
 
-        /* 2. منطقة القوائم الرئيسية */
+        /* منطقة القوائم */
         #main-content { padding-top: 15vh; min-height: 100vh; padding-bottom: 5vh; }
         .row-container { margin-bottom: 5vh; position: relative; }
         .row-title { font-size: 1.8vw; font-weight: bold; margin: 0 4vw 2vh 0; opacity: 0.9; text-shadow: 1px 1px 3px black; }
         .row-inner { display: flex; gap: 1.5vw; overflow-x: auto; padding: 1vh 4vw; scroll-behavior: smooth; }
         
-        /* أزرار التمرير الجانبي */
+        /* أزرار التمرير الجانبي الشفافة */
         .scroll-btn {
             position: absolute; top: 55%; transform: translateY(-50%);
             background: rgba(20,20,20,0.6); color: white; border: 0.1vw solid rgba(255,255,255,0.2);
@@ -52,22 +58,22 @@
             display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px);
             transition: 0.3s; outline: none;
         }
-        .scroll-btn:hover, .scroll-btn:focus { background: var(--primary); border-color: var(--primary); transform: translateY(-50%) scale(1.1); }
+        .scroll-btn:focus, .scroll-btn:hover { background: var(--primary); border-color: white; transform: translateY(-50%) scale(1.1); }
         .scroll-btn.right { right: 1vw; }
         .scroll-btn.left { left: 1vw; }
 
-        /* البطاقات (تم تحويلها لـ Buttons لتعمل مع أسهم الريموت) */
+        /* البطاقات */
         .card {
             flex: 0 0 auto; width: var(--card-w); height: var(--card-h); border-radius: 0.5vw; overflow: hidden; position: relative;
             background: #222; cursor: pointer; outline: none; transition: transform 0.3s ease, border 0.3s ease;
             padding: 0; margin: 0; border: 0.3vw solid transparent; display: block; text-align: left;
         }
         .card img { width: 100%; height: 100%; object-fit: cover; }
-        .card:focus, .card:hover { transform: scale(1.08) translateY(-1vh); border-color: white; z-index: 5; box-shadow: 0 2vh 4vh rgba(0,0,0,0.8); }
+        .card:focus, .card:hover { transform: scale(1.08) translateY(-1vh); border-color: white; z-index: 5; box-shadow: 0 2vh 4vh rgba(0,0,0,0.9); }
         .progress-bar { position: absolute; bottom: 0; width: 100%; height: 0.8vh; background: rgba(0,0,0,0.5); }
         .progress-fill { height: 100%; background: var(--primary); }
 
-        /* 3. شاشة التفاصيل (مقسمة) */
+        /* شاشة التفاصيل */
         #details-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 200;
             padding: 8vh 4vw; box-sizing: border-box; background-size: cover; background-position: center;
@@ -93,7 +99,7 @@
         .ep-card { background: rgba(40,40,40,0.9); padding: 2vh; border-radius: 0.5vw; cursor: pointer; outline: none; transition: 0.3s; display: flex; justify-content: space-between; align-items: center; border: 0.1vw solid transparent; color: white; font-size: 1.2vw; }
         .ep-card:focus, .ep-card:hover { background: var(--text); color: black; transform: scale(1.05); border-color: white; }
 
-        /* شاشة المستخدمين وتسجيل الدخول والنافذة المنبثقة */
+        /* شاشات المستخدمين وتسجيل الدخول */
         #profiles-screen, #login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: var(--bg); position: fixed; top:0; width:100%; z-index: 500; }
         .profiles-container { display: flex; gap: 3vw; margin-top: 5vh; flex-wrap: wrap; justify-content: center; }
         .profile-card { width: 12vw; height: 12vw; background: #222; border-radius: 1vw; display: flex; align-items: center; justify-content: center; font-size: 2.5vw; font-weight: bold; cursor: pointer; outline: none; transition: 0.3s; border: 0.2vw solid transparent; color: white; }
@@ -101,59 +107,60 @@
         .login-box input { width: 25vw; padding: 1.5vh; margin: 1vh 0; font-size: 1.2vw; border-radius: 5px; border: none; outline: none; font-family: inherit; }
         .login-box button { width: 25vw; padding: 1.5vh; font-size: 1.5vw; background: var(--primary); color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 2vh; }
 
-        /* نافذة إضافة مستخدم (بديل للـ Prompt الممنوع في التلفاز) */
-        #add-modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.9); z-index: 1000; display: flex; justify-content: center; align-items: center; }
-        .modal-box { background: #222; padding: 4vw; border-radius: 1vw; text-align: center; border: 0.1vw solid #555; }
-        .modal-box input { width: 20vw; padding: 1.5vw; font-size: 1.5vw; margin: 2vw 0; border-radius: 5px; border: none; outline: none; }
+        /* نافذة إضافة مستخدم (Modal) */
+        #add-modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); z-index: 1000; display: flex; justify-content: center; align-items: center; }
+        .modal-box { background: #1a1a1a; padding: 4vw; border-radius: 1vw; text-align: center; border: 0.1vw solid #444; }
+        .modal-box input { width: 20vw; padding: 1.5vw; font-size: 1.5vw; margin: 2vw 0; border-radius: 5px; border: none; outline: none; text-align: center; }
 
-        /* المشغل */
         #player-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 9999; }
         video { width: 100%; height: 100%; outline: none; background: #000; }
     </style>
 </head>
 <body>
 
+    <div id="toast">تمت العملية بنجاح</div>
+
     <div id="login-screen">
         <div class="login-box" style="text-align: center;">
             <h1 style="color: var(--primary); font-size: 3vw;">STREAM</h1>
-            <input type="text" id="iptv-domain" placeholder="رابط السيرفر (http://...)">
-            <input type="text" id="iptv-user" placeholder="اسم المستخدم">
-            <input type="password" id="iptv-pass" placeholder="كلمة المرور">
-            <button onclick="login()">تسجيل الدخول</button>
+            <input type="text" id="iptv-domain" class="focusable" placeholder="رابط السيرفر">
+            <input type="text" id="iptv-user" class="focusable" placeholder="اسم المستخدم">
+            <input type="password" id="iptv-pass" class="focusable" placeholder="كلمة المرور">
+            <button class="focusable" onclick="login()">تسجيل الدخول</button>
         </div>
     </div>
 
     <div id="add-modal" class="hidden">
         <div class="modal-box">
             <h2 style="margin:0;">اسم المستخدم الجديد</h2>
-            <input type="text" id="new-profile-input" placeholder="اكتب الاسم هنا...">
+            <input type="text" id="new-profile-input" class="focusable" placeholder="اكتب الاسم هنا...">
             <br>
-            <button class="action-btn" onclick="saveNewProfile()">حفظ وإنشاء</button>
-            <button class="action-btn fav" onclick="document.getElementById('add-modal').classList.add('hidden')">إلغاء</button>
+            <button class="action-btn focusable" onclick="saveNewProfile()">حفظ وإنشاء</button>
+            <button class="action-btn fav focusable" onclick="document.getElementById('add-modal').classList.add('hidden')">إلغاء</button>
         </div>
     </div>
 
     <div id="profiles-screen" class="hidden">
         <h1 style="font-size: 3vw;">من يشاهد الآن؟</h1>
         <div class="profiles-container" id="profiles-list"></div>
-        <button class="action-btn" style="margin-top:5vh;" onclick="openAddProfileModal()">+ مستخدم جديد</button>
+        <button class="action-btn focusable" style="margin-top:5vh;" onclick="openAddProfileModal()">+ مستخدم جديد</button>
     </div>
 
     <div id="main-screen" class="hidden">
         <header id="main-header">
             <div class="logo">STREAM</div>
             <div class="nav-links">
-                <button class="nav-item active" onclick="loadPage('movies')">الأفلام</button>
-                <button class="nav-item" onclick="loadPage('series')">المسلسلات</button>
-                <button class="nav-item" onclick="loadPage('live')">القنوات</button>
-                <button class="nav-item" onclick="loadPage('favorites')">مفضلاتي</button>
+                <button class="nav-item active focusable" onclick="loadPage('movies')">الأفلام</button>
+                <button class="nav-item focusable" onclick="loadPage('series')">المسلسلات</button>
+                <button class="nav-item focusable" onclick="loadPage('live')">القنوات</button>
+                <button class="nav-item focusable" onclick="loadPage('favorites')">مفضلاتي</button>
                 <div class="search-box">
-                    <input type="text" id="search-input" placeholder="🔍 ابحث هنا..." onkeyup="handleSearch()">
+                    <input type="text" id="search-input" class="focusable" placeholder="🔍 ابحث هنا..." onkeyup="handleSearch()">
                 </div>
             </div>
             <div class="user-info">
                 <span id="current-profile-name"></span>
-                <button class="nav-item" style="font-size: 1.2vw;" onclick="changeProfile()">تبديل</button>
+                <button class="nav-item focusable" style="font-size: 1.2vw;" onclick="changeProfile()">تبديل</button>
             </div>
         </header>
 
@@ -186,7 +193,7 @@
     </div>
 
 <script>
-    // --- تهيئة سوبابيس ---
+    // --- تهيئة سوبابيس (بدون مسافات في onConflict) ---
     const supabaseUrl = 'https://kpfymvtyqbyjmlqfgujo.supabase.co';
     const supabaseKey = 'sb_publishable_g7dHfpmPHcQwAWsO9FFuGw_4lG8fyLc';
     const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
@@ -195,6 +202,13 @@
     let currentProfile = '';
     let isPlaying = false;
     let activeStreamData = null; 
+
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.innerText = msg;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 3000);
+    }
 
     window.onload = () => {
         if(localStorage.getItem('iptv_user')) {
@@ -220,7 +234,7 @@
         fetchProfilesFromSupabase();
     }
 
-    // --- نظام المستخدمين المحدث ---
+    // --- نظام المستخدمين (مصحح 100%) ---
     async function fetchProfilesFromSupabase() {
         document.getElementById('login-screen').classList.add('hidden');
         document.getElementById('main-screen').classList.add('hidden');
@@ -231,6 +245,7 @@
 
         try {
             const { data, error } = await supabaseClient.from('profiles').select('profile_name').eq('username', iptv.user);
+            if(error) throw error;
             container.innerHTML = '';
             
             if(data && data.length > 0) {
@@ -239,31 +254,38 @@
                 await supabaseClient.from('profiles').insert([{ username: iptv.user, profile_name: 'العائلة' }]);
                 renderProfileCard('العائلة');
             }
-        } catch (e) { container.innerHTML = '<h2>خطأ في الاتصال بقاعدة البيانات</h2>'; }
+        } catch (e) { 
+            showToast('خطأ: ' + e.message); 
+            container.innerHTML = '<h2>خطأ في الاتصال بقاعدة البيانات</h2>'; 
+        }
     }
 
     function renderProfileCard(name) {
-        const card = document.createElement('button'); // تحويل لـ button لريموت التلفاز
-        card.className = 'profile-card';
+        const card = document.createElement('button');
+        card.className = 'profile-card focusable';
         card.innerText = name;
         card.onclick = () => selectProfile(name);
         document.getElementById('profiles-list').appendChild(card);
     }
 
-    // فتح النافذة المنبثقة بدلاً من Prompt
     function openAddProfileModal() {
         document.getElementById('new-profile-input').value = '';
         document.getElementById('add-modal').classList.remove('hidden');
         document.getElementById('new-profile-input').focus();
     }
 
-    // حفظ المستخدم في سوبابيس
     async function saveNewProfile() {
         let name = document.getElementById('new-profile-input').value.trim();
         if(name) {
             document.getElementById('add-modal').classList.add('hidden');
-            document.getElementById('profiles-list').innerHTML = '<h2>جاري الإنشاء...</h2>';
-            await supabaseClient.from('profiles').upsert({ username: iptv.user, profile_name: name });
+            document.getElementById('profiles-list').innerHTML = '<h2>جاري الحفظ...</h2>';
+            // تم تصحيح onConflict بإزالة المسافات
+            const { error } = await supabaseClient.from('profiles').upsert(
+                { username: iptv.user, profile_name: name }, 
+                { onConflict: 'username,profile_name' }
+            );
+            if(error) showToast('خطأ الحفظ: ' + error.message);
+            else showToast('تم إضافة المستخدم بنجاح');
             fetchProfilesFromSupabase();
         }
     }
@@ -278,28 +300,32 @@
 
     function changeProfile() { fetchProfilesFromSupabase(); }
 
-    // --- نظام البحث الفوري ---
+    // --- شريط البحث الفوري (مصحح) ---
     function handleSearch() {
-        const query = document.getElementById('search-input').value.toLowerCase();
-        
-        document.querySelectorAll('.card').forEach(card => {
-            const title = card.getAttribute('data-title') || '';
-            if(title.includes(query)) card.style.display = 'block';
-            else card.style.display = 'none';
-        });
+        const query = document.getElementById('search-input').value.toLowerCase().trim();
+        const rows = document.querySelectorAll('.row-container');
 
-        // إخفاء الصفوف الفارغة بالكامل
-        document.querySelectorAll('.row-container').forEach(row => {
-            const visibleCards = row.querySelectorAll('.card[style="display: block;"], .card:not([style="display: none;"])');
-            row.style.display = visibleCards.length > 0 ? 'block' : 'none';
+        rows.forEach(row => {
+            let hasVisible = false;
+            row.querySelectorAll('.card').forEach(card => {
+                const title = card.getAttribute('data-title') || '';
+                if(title.includes(query) || query === '') {
+                    card.style.display = ''; // إرجاع العرض الافتراضي للبطاقة
+                    hasVisible = true;
+                } else {
+                    card.style.display = 'none'; // إخفاء البطاقة
+                }
+            });
+            // إخفاء الصف بالكامل إذا لم يكن به نتائج
+            row.style.display = hasVisible ? 'block' : 'none';
         });
     }
 
     // --- الواجهة والقوائم ---
     async function loadPage(type) {
         document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-        if(event && event.target) event.target.classList.add('active');
-        document.getElementById('search-input').value = ''; // تصفير البحث
+        if(event && event.target && event.target.tagName === 'BUTTON') event.target.classList.add('active');
+        document.getElementById('search-input').value = '';
 
         document.getElementById('rows-container').innerHTML = '<h2 style="padding:4vw;">جاري تحميل المحتوى...</h2>';
         document.getElementById('continue-watching-container').innerHTML = ''; 
@@ -336,8 +362,8 @@
     function buildRow(title, items, type) {
         const wrapper = document.createElement('div'); wrapper.className = 'row-container';
         
-        const btnRight = document.createElement('button'); btnRight.className = 'scroll-btn right'; btnRight.innerHTML = '▶';
-        const btnLeft = document.createElement('button'); btnLeft.className = 'scroll-btn left'; btnLeft.innerHTML = '◀';
+        const btnRight = document.createElement('button'); btnRight.className = 'scroll-btn right focusable'; btnRight.innerHTML = '▶';
+        const btnLeft = document.createElement('button'); btnLeft.className = 'scroll-btn left focusable'; btnLeft.innerHTML = '◀';
         
         wrapper.innerHTML = `<div class="row-title">${title}</div>`;
         const inner = document.createElement('div'); inner.className = 'row-inner';
@@ -346,21 +372,14 @@
         btnLeft.onclick = () => inner.scrollBy({ left: -800, behavior: 'smooth' });
 
         items.forEach(item => {
-            const card = document.createElement('button'); // زر للأسهم
-            card.className = 'card'; 
+            const card = document.createElement('button');
+            card.className = 'card focusable'; 
             card.setAttribute('data-title', (item.name || item.title || '').toLowerCase());
             
             const imgUrl = item.stream_icon || item.cover || 'https://via.placeholder.com/300x450/222/fff?text=No+Poster';
             card.innerHTML = `<img src="${imgUrl}" onerror="this.src='https://via.placeholder.com/300x450/222/fff?text=Poster'">`;
             
-            // سحر ريموت LG: التمرير التلقائي عند استخدام الأسهم للوصول لفيلم مخفي
-            card.addEventListener('focus', (e) => {
-                e.target.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
-            });
-
-            const handleClick = () => type === 'live' ? playStream(item.stream_id, 'live', '') : openDetails(item, type);
-            card.onclick = handleClick;
-            
+            card.onclick = () => type === 'live' ? playStream(item.stream_id, 'live', '') : openDetails(item, type);
             inner.appendChild(card);
         });
         
@@ -378,8 +397,8 @@
             const { data } = await query;
             if(data && data.length > 0) {
                 const wrapper = document.createElement('div'); wrapper.className = 'row-container';
-                const btnRight = document.createElement('button'); btnRight.className = 'scroll-btn right'; btnRight.innerHTML = '▶';
-                const btnLeft = document.createElement('button'); btnLeft.className = 'scroll-btn left'; btnLeft.innerHTML = '◀';
+                const btnRight = document.createElement('button'); btnRight.className = 'scroll-btn right focusable'; btnRight.innerHTML = '▶';
+                const btnLeft = document.createElement('button'); btnLeft.className = 'scroll-btn left focusable'; btnLeft.innerHTML = '◀';
                 
                 wrapper.innerHTML = `<div class="row-title">${rowTitle}</div>`;
                 const inner = document.createElement('div'); inner.className = 'row-inner';
@@ -389,26 +408,24 @@
                 data.forEach(row => {
                     const obj = row.item_data; if(!obj) return;
                     const card = document.createElement('button');
-                    card.className = 'card';
+                    card.className = 'card focusable';
                     card.setAttribute('data-title', (obj.name || obj.title || '').toLowerCase());
                     const progress = row.resume_time > 0 ? Math.min((row.resume_time / 7200) * 100, 100) : 0;
-                    const imgUrl = obj.stream_icon || obj.cover;
                     
                     card.innerHTML = `
-                        <img src="${imgUrl}">
+                        <img src="${obj.stream_icon || obj.cover}">
                         ${tableName === 'user_activity' ? `<div class="progress-bar"><div class="progress-fill" style="width: ${progress}%"></div></div>` : ''}
                     `;
-                    card.addEventListener('focus', (e) => e.target.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" }));
                     card.onclick = () => openDetails(obj, row.item_type);
                     inner.appendChild(card);
                 });
                 wrapper.appendChild(btnRight); wrapper.appendChild(inner); wrapper.appendChild(btnLeft);
                 container.appendChild(wrapper);
             }
-        } catch(e) { console.error(e); }
+        } catch(e) {}
     }
 
-    // --- شاشة التفاصيل (مقسمة يمين ويسار) ---
+    // --- شاشة التفاصيل ---
     async function openDetails(item, type) {
         history.pushState({view: 'details'}, 'Details', '#details');
         document.getElementById('main-screen').classList.add('hidden');
@@ -431,22 +448,21 @@
             document.getElementById('detail-desc').innerText = info.plot || info.description || 'لا يوجد وصف متاح.';
             document.getElementById('detail-meta').innerHTML = `<span>${info.genre || 'غير مصنف'}</span> | <span>${info.year || ''}</span>`;
 
-            let actionsHtml = `<button class="action-btn fav" id="fav-btn" onclick="toggleFavorite()">❤ أضف للمفضلة</button>`;
+            let actionsHtml = `<button class="action-btn fav focusable" id="fav-btn" onclick="toggleFavorite()">❤ أضف للمفضلة</button>`;
             if (type === 'movie') {
-                actionsHtml = `<button class="action-btn" onclick="playStream('${id}', 'movie', '${item.container_extension || 'mkv'}')">▶ تشغيل الفيلم</button>` + actionsHtml;
+                actionsHtml = `<button class="action-btn focusable" onclick="playStream('${id}', 'movie', '${item.container_extension || 'mkv'}')">▶ تشغيل الفيلم</button>` + actionsHtml;
             } else if (type === 'series' && data.episodes) {
-                actionsHtml += `<select id="season-selector" class="seasons-select"></select>`;
+                actionsHtml += `<select id="season-selector" class="seasons-select focusable"></select>`;
             }
             
             document.getElementById('detail-actions').innerHTML = actionsHtml;
             checkIfFavorite(); 
 
-            // توجيه التركيز (الفوكس) التلقائي لأول زر في الشاشة
-            setTimeout(() => { const firstBtn = document.querySelector('.action-btn'); if(firstBtn) firstBtn.focus(); }, 100);
+            setTimeout(() => { const firstBtn = document.querySelector('#detail-actions .action-btn'); if(firstBtn) firstBtn.focus(); }, 100);
 
             if (type === 'series' && data.episodes) renderSeasons(data.episodes);
         } catch (e) {
-            document.getElementById('detail-actions').innerHTML = '<button class="action-btn" onclick="history.back()">رجوع</button>';
+            document.getElementById('detail-actions').innerHTML = '<button class="action-btn focusable" onclick="history.back()">رجوع</button>';
         }
     }
 
@@ -465,12 +481,16 @@
         if (data && data.length > 0) {
             await supabaseClient.from('favorites').delete().eq('id', data[0].id);
             favBtn.innerText = '❤ أضف للمفضلة'; favBtn.style.background = 'rgba(40,40,40,0.8)';
+            showToast('تم الحذف من المفضلة');
         } else {
-            await supabaseClient.from('favorites').insert([{
+            const { error } = await supabaseClient.from('favorites').upsert([{
                 username: iptv.user, profile_name: currentProfile,
                 item_id: String(activeStreamData.id), item_type: activeStreamData.type, item_data: activeStreamData
-            }]);
+            }], { onConflict: 'username,profile_name,item_id' });
+            
+            if(error) { showToast('خطأ: ' + error.message); return; }
             favBtn.innerText = '❌ إزالة من المفضلة'; favBtn.style.background = 'var(--primary)';
+            showToast('تمت الإضافة للمفضلة بنجاح');
         }
     }
 
@@ -493,7 +513,7 @@
         container.innerHTML = '';
         epsList.forEach(ep => {
             const div = document.createElement('button');
-            div.className = 'ep-card'; 
+            div.className = 'ep-card focusable'; 
             div.innerHTML = `<span>الحلقة ${ep.episode_num || '-'} ${ep.title ? '- '+ep.title : ''}</span> <span>▶</span>`;
             div.onclick = () => playStream(ep.id, 'series', ep.container_extension || 'mkv'); 
             container.appendChild(div);
@@ -525,14 +545,65 @@
 
     async function saveActivity(time) {
         try {
-            await supabaseClient.from('user_activity').upsert({
-                username: iptv.user, profile_name: currentProfile, movie_id: String(activeStreamData.id), 
-                item_type: activeStreamData.type, resume_time: time, item_data: activeStreamData
-            }, { onConflict: 'username, profile_name, movie_id' });
+            await supabaseClient.from('user_activity').upsert(
+                { username: iptv.user, profile_name: currentProfile, movie_id: String(activeStreamData.id), item_type: activeStreamData.type, resume_time: time, item_data: activeStreamData }, 
+                { onConflict: 'username,profile_name,movie_id' }
+            );
         } catch(e) {}
     }
 
-    // --- تأثيرات الشريط العلوي والرجوع ---
+    // --- محرك التنقل الذكي (Spatial Navigation) للريموت ---
+    document.addEventListener('keydown', (e) => {
+        if (isPlaying) {
+            if(e.keyCode === 37) video.currentTime -= 15;
+            if(e.keyCode === 39) video.currentTime += 15;
+            if(e.keyCode === 13) video.paused ? video.play() : video.pause();
+            return;
+        }
+
+        const KEYS = [37, 38, 39, 40]; // يسار، أعلى، يمين، أسفل
+        if (KEYS.includes(e.keyCode)) {
+            // السماح بالتنقل داخل شريط البحث إذا كان مفعلاً
+            if(document.activeElement.tagName === 'INPUT' && (e.keyCode === 37 || e.keyCode === 39)) return; 
+
+            e.preventDefault();
+            let current = document.activeElement;
+            if (!current || !current.classList.contains('focusable')) {
+                const first = document.querySelector('.focusable');
+                if(first) first.focus();
+                return;
+            }
+
+            let rect = current.getBoundingClientRect();
+            let focusables = Array.from(document.querySelectorAll('.focusable')).filter(el => el.offsetParent !== null);
+            let bestMatch = null;
+            let minDistance = Infinity;
+
+            focusables.forEach(f => {
+                if(f === current) return;
+                let r = f.getBoundingClientRect();
+                let dx = 0, dy = 0, dist = Infinity;
+
+                if(e.keyCode === 37 && r.right <= rect.left) { // يسار
+                    dx = rect.left - r.right; dy = Math.abs((rect.top+rect.bottom)/2 - (r.top+r.bottom)/2); dist = dx + dy*2;
+                } else if(e.keyCode === 39 && r.left >= rect.right) { // يمين
+                    dx = r.left - rect.right; dy = Math.abs((rect.top+rect.bottom)/2 - (r.top+r.bottom)/2); dist = dx + dy*2;
+                } else if(e.keyCode === 38 && r.bottom <= rect.top) { // أعلى
+                    dy = rect.top - r.bottom; dx = Math.abs((rect.left+rect.right)/2 - (r.left+r.right)/2); dist = dy + dx*2;
+                } else if(e.keyCode === 40 && r.top >= rect.bottom) { // أسفل
+                    dy = r.top - rect.bottom; dx = Math.abs((rect.left+rect.right)/2 - (r.left+r.right)/2); dist = dy + dx*2;
+                }
+
+                if(dist < minDistance) { minDistance = dist; bestMatch = f; }
+            });
+
+            if(bestMatch) {
+                bestMatch.focus();
+                bestMatch.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+            }
+        }
+    });
+
     window.addEventListener('scroll', () => {
         const header = document.getElementById('main-header');
         if(window.scrollY > 50) header.classList.add('scrolled');
