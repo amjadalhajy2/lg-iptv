@@ -15,17 +15,17 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
 
       - name: Install webOS CLI
         run: npm install -g @webos-tools/cli
 
       - name: Package App to IPK
         continue-on-error: true
-        run: ares-package tv-app
+        run: ares-package tv-app -o ./
 
       - name: Upload IPK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: smart-iptv-app
-          path: "*.ipk"
+          path: "**/*.ipk"
