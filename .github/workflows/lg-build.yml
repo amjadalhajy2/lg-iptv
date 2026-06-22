@@ -20,9 +20,6 @@ jobs:
     - name: Install webOS CLI
       run: npm install -g @webos-tools/cli
 
-    - name: Download Dummy Icon
-      run: wget -O icon.png https://via.placeholder.com/160x160.png?text=Smart+IPTV
-
     - name: Package App
       run: ares-package .
 
