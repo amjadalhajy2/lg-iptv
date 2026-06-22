@@ -14,15 +14,18 @@ jobs:
 
     - name: Create Package
       run: |
-        # إنشاء هيكل الحزمة الذي تتوقعه شاشة LG
+        # إنشاء مسار الحزمة
         mkdir -p package/usr/palm/applications/com.smart.iptv.app
-        cp -r . package/usr/palm/applications/com.smart.iptv.app/
-        # حذف مجلدات النظام غير المرغوب فيها من الحزمة
-        rm -rf package/usr/palm/applications/com.smart.iptv.app/.github
-        rm -rf package/usr/palm/applications/com.smart.iptv.app/.git
         
-        # ضغط الملفات بصيغة tar.gz كما يتطلب النظام
-        tar -czvf data.tar.gz -C package .
+        # نسخ الملفات الضرورية فقط (index.html, appinfo.json, icon.png)
+        # هذا يمنع حدوث خطأ "النسخ داخل النفس"
+        cp index.html appinfo.json icon.png package/usr/palm/applications/com.smart.iptv.app/
+        
+        # ضغط ملفات التطبيق (data.tar.gz)
+        cd package
+        tar -czvf ../data.tar.gz .
+        cd ..
+        
         # إنشاء ملف التحكم (control)
         echo "Package: com.smart.iptv.app" > control
         echo "Version: 1.0.0" >> control
