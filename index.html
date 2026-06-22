@@ -9,13 +9,13 @@
         /* إعدادات الشاشات الكبيرة (65 بوصة) */
         :root { 
             --bg: #0f0f0f; --primary: #e50914; --text: #ffffff; 
-            --card-w: 16vw; --card-h: 24vw; /* مقاسات ديناميكية تتكيف مع الشاشة */
+            --card-w: 16vw; --card-h: 24vw;
         }
         body { background-color: var(--bg); color: var(--text); font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; overflow: hidden; user-select: none; }
         ::-webkit-scrollbar { display: none; }
         .hidden { display: none !important; }
 
-        /* 1. الشريط العلوي الشفاف (Sticky Header) */
+        /* 1. الشريط العلوي */
         header {
             position: fixed; top: 0; width: 100%; height: 10vh; padding: 0 4vw;
             background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%);
@@ -29,7 +29,7 @@
         .nav-item:focus, .nav-item:hover, .nav-item.active { opacity: 1; transform: scale(1.1); background: rgba(255,255,255,0.1); }
         .user-info { display: flex; align-items: center; gap: 1vw; font-size: 1.2vw; }
 
-        /* 2. منطقة العرض الديناميكية (نصف الشاشة العلوي) */
+        /* 2. منطقة العرض الديناميكية */
         #active-item-hero {
             position: absolute; top: 0; width: 100%; height: 55vh;
             background-size: cover; background-position: center 20%;
@@ -42,13 +42,12 @@
         .hero-meta { font-size: 1.2vw; color: #ccc; margin-bottom: 2vh; font-weight: 600; display: flex; gap: 1vw; }
         .hero-desc { font-size: 1.1vw; line-height: 1.6; opacity: 0.8; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 
-        /* 3. القوائم (Rows) */
+        /* 3. القوائم */
         #main-content { position: absolute; top: 50vh; width: 100%; height: 50vh; overflow-y: auto; padding-bottom: 5vh; scroll-behavior: smooth; }
         .row-container { margin-bottom: 4vh; }
         .row-title { font-size: 1.5vw; font-weight: bold; margin: 0 4vw 1.5vh 0; opacity: 0.9; }
         .row-inner { display: flex; gap: 1.5vw; overflow-x: auto; padding: 1vh 4vw; scroll-behavior: smooth; }
         
-        /* البطاقات وتأثير التركيز */
         .card {
             flex: 0 0 auto; width: var(--card-w); height: var(--card-h); border-radius: 0.5vw; overflow: hidden; position: relative;
             background: #222; cursor: pointer; outline: none; transition: transform 0.3s ease, border 0.3s ease;
@@ -58,7 +57,7 @@
         .progress-bar { position: absolute; bottom: 0; width: 100%; height: 0.6vh; background: rgba(255,255,255,0.3); }
         .progress-fill { height: 100%; background: var(--primary); }
 
-        /* 4. شاشة التفاصيل (Full Screen) */
+        /* 4. شاشة التفاصيل */
         #details-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 200;
             overflow-y: auto; padding: 10vh 4vw; box-sizing: border-box; background-size: cover; background-position: center;
@@ -71,7 +70,6 @@
         .action-btn.fav { background: rgba(50,50,50,0.8); color: white; border: 0.1vw solid white; }
         .action-btn:focus, .action-btn:hover { transform: scale(1.05); background: var(--primary); color: white; border-color: var(--primary); }
         
-        /* قائمة المواسم والحلقات */
         .seasons-select { background: #222; color: white; padding: 1vh 2vw; font-size: 1.5vw; border: none; border-radius: 0.5vw; margin-top: 4vh; outline: none; }
         .seasons-select:focus { border: 0.2vw solid white; }
         .episodes-list { margin-top: 3vh; display: grid; grid-template-columns: repeat(auto-fill, minmax(20vw, 1fr)); gap: 1vw; }
@@ -84,11 +82,9 @@
         .profile-card { width: 10vw; height: 10vw; background: #333; border-radius: 1vw; display: flex; align-items: center; justify-content: center; font-size: 2vw; font-weight: bold; cursor: pointer; outline: none; transition: 0.3s; }
         .profile-card:focus, .profile-card:hover { background: white; color: black; transform: scale(1.1); }
 
-        /* المشغل */
+        /* المشغل وتسجيل الدخول */
         #player-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 9999; }
         video { width: 100%; height: 100%; outline: none; background: #000; }
-        
-        /* شاشة تسجيل الدخول */
         #login-screen { height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         .login-box input { width: 25vw; padding: 1.5vh; margin: 1vh 0; font-size: 1.2vw; }
         .login-box button { width: 25vw; padding: 1.5vh; font-size: 1.5vw; }
@@ -108,8 +104,7 @@
 
     <div id="profiles-screen" class="hidden">
         <h1>من يشاهد الآن؟</h1>
-        <div class="profiles-container" id="profiles-list">
-            </div>
+        <div class="profiles-container" id="profiles-list"></div>
         <button class="action-btn" style="margin-top:5vh;" onclick="addProfile()">+ مستخدم جديد</button>
     </div>
 
@@ -150,8 +145,7 @@
                 <h1 id="detail-title"></h1>
                 <div class="hero-meta" id="detail-meta"></div>
                 <p class="hero-desc" id="detail-desc" style="-webkit-line-clamp: unset;"></p>
-                <div id="detail-actions">
-                    </div>
+                <div id="detail-actions"></div>
             </div>
         </div>
         <div id="series-content" class="hidden">
@@ -168,7 +162,7 @@
     </div>
 
 <script>
-    // --- تهيئة سوبابيس (تم تصحيح اسم المتغير لمنع التعارض) ---
+    // --- تهيئة سوبابيس الآمنة ---
     const supabaseUrl = 'https://kpfymvtyqbyjmlqfgujo.supabase.co';
     const supabaseKey = 'sb_publishable_g7dHfpmPHcQwAWsO9FFuGw_4lG8fyLc';
     const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
@@ -197,7 +191,6 @@
         iptv.pass = document.getElementById('iptv-pass').value.trim();
         if(!iptv.user) return;
         
-        // إزالة الشرطة المائلة من نهاية الرابط إذا وجدت
         iptv.domain = iptv.domain.endsWith('/') ? iptv.domain.slice(0, -1) : iptv.domain;
         
         localStorage.setItem('iptv_domain', iptv.domain);
@@ -331,7 +324,7 @@
         }
     }
 
-    // --- 4. شاشة التفاصيل (Full Screen) ---
+    // --- 4. شاشة التفاصيل ---
     async function openDetails(item, type) {
         history.pushState({view: 'details'}, 'Details', '#details');
         document.getElementById('main-screen').classList.add('hidden');
@@ -412,10 +405,9 @@
 
     function toggleFavorite() {
         alert("تمت الإضافة إلى مفضلة: " + currentProfile);
-        // سيتم برمجة سوبابيس للمفضلة لاحقاً
     }
 
-    // --- 5. المشغل والمزامنة (باستخدام supabaseClient) ---
+    // --- 5. المشغل والمزامنة ---
     const video = document.getElementById('tv-video');
     function playStream(id, type, ext) {
         let urlType = type === 'movie' ? 'movie' : 'series';
@@ -454,7 +446,7 @@
         } catch(e) { console.error('خطأ في المزامنة:', e); }
     }
 
-    // --- 6. قائمة متابعة المشاهدة (باستخدام supabaseClient) ---
+    // --- 6. قائمة متابعة المشاهدة ---
     async function loadContinueWatching() {
         const container = document.getElementById('continue-watching-container');
         container.innerHTML = '';
