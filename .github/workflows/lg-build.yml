@@ -12,16 +12,29 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '16'
-
-    - name: Install webOS CLI
-      run: npm install -g @webos-tools/cli
-
-    - name: Package App
-      run: ares-package .
+    - name: Create Package
+      run: |
+        # إنشاء هيكل الحزمة الذي تتوقعه شاشة LG
+        mkdir -p package/usr/palm/applications/com.smart.iptv.app
+        cp -r . package/usr/palm/applications/com.smart.iptv.app/
+        # حذف مجلدات النظام غير المرغوب فيها من الحزمة
+        rm -rf package/usr/palm/applications/com.smart.iptv.app/.github
+        rm -rf package/usr/palm/applications/com.smart.iptv.app/.git
+        
+        # ضغط الملفات بصيغة tar.gz كما يتطلب النظام
+        tar -czvf data.tar.gz -C package .
+        # إنشاء ملف التحكم (control)
+        echo "Package: com.smart.iptv.app" > control
+        echo "Version: 1.0.0" >> control
+        echo "Section: misc" >> control
+        echo "Priority: optional" >> control
+        echo "Architecture: all" >> control
+        echo "Description: Smart IPTV App" >> control
+        tar -czvf control.tar.gz control
+        
+        # إنشاء ملف الـ ipk النهائي
+        echo "2.0" > debian-binary
+        ar -r com.smart.iptv.app_1.0.0_all.ipk debian-binary control.tar.gz data.tar.gz
 
     - name: Upload IPK Artifact
       uses: actions/upload-artifact@v4
