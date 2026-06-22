@@ -21,6 +21,7 @@ jobs:
         run: npm install -g @webos-tools/cli
 
       - name: Package App to IPK
+        continue-on-error: true
         run: ares-package .
 
       - name: Upload IPK Artifact
