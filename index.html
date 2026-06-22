@@ -2,167 +2,85 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="viewport" content="width=1920, user-scalable=no">
-    <title>تطبيق IPTV الذكي - LG TV</title>
+    <title>تطبيق IPTV السحابي - LG TV</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* تنسيقات أساسية تناسب شاشة 1080p */
         body { 
-            background-color: #111; 
-            color: white; 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            padding: 30px; 
-            text-align: center; 
-            margin: 0;
-            overflow-x: hidden;
+            background-color: #111; color: white; font-family: 'Segoe UI', sans-serif; 
+            padding: 30px; text-align: center; margin: 0; overflow-x: hidden;
         }
-        
-        /* إخفاء شريط التمرير (Scrollbar) لجمالية التلفاز */
         ::-webkit-scrollbar { display: none; }
-
         input, select { 
-            padding: 15px; 
-            margin: 10px; 
-            width: 80%; 
-            max-width: 400px; 
-            border-radius: 8px; 
-            border: 2px solid #444; 
-            background: #222;
-            color: white;
-            font-size: 18px;
-            outline: none;
+            padding: 15px; margin: 10px; width: 80%; max-width: 400px; 
+            border-radius: 8px; border: 2px solid #444; background: #222; color: white; font-size: 18px; outline: none;
         }
-        
         button { 
-            background: #e50914; 
-            color: white; 
-            border: none; 
-            padding: 15px 30px; 
-            margin-top: 10px; 
-            border-radius: 8px; 
-            font-size: 18px;
-            font-weight: bold; 
-            cursor: pointer; 
-            transition: 0.2s;
-            outline: none;
+            background: #e50914; color: white; border: none; padding: 15px 30px; 
+            margin-top: 10px; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.2s; outline: none;
         }
-
-        /* تفاعل أزرار الريموت (Focus) والماجيك ريموت (Hover) */
         button:focus, button:hover, input:focus, select:focus { 
-            border-color: #fff;
-            box-shadow: 0 0 15px #e50914;
-            background: #b20710;
-            transform: scale(1.05);
+            border-color: #fff; box-shadow: 0 0 15px #e50914; background: #b20710; transform: scale(1.05);
         }
-
-        .hidden { display: none; }
-        
+        .hidden { display: none !important; }
         .movie-card { 
-            background: #222; 
-            margin: 15px; 
-            padding: 15px; 
-            border-radius: 10px; 
-            display: inline-block; 
-            width: 220px; 
-            vertical-align: top;
-            transition: 0.3s ease;
-            outline: none; /* مهم للريموت */
+            background: #222; margin: 15px; padding: 15px; border-radius: 10px; 
+            display: inline-block; width: 220px; vertical-align: top; transition: 0.3s ease; outline: none;
         }
-        
-        .movie-card img { 
-            width: 100%; 
-            border-radius: 8px; 
-            height: 300px; 
-            object-fit: cover; 
-        }
-
-        /* تحديد الكرت عند الوقوف عليه بأسهم الريموت */
+        .movie-card img { width: 100%; border-radius: 8px; height: 300px; object-fit: cover; }
         .movie-card:focus, .movie-card:hover {
-            transform: scale(1.1);
-            background: #333;
-            box-shadow: 0px 10px 20px rgba(229, 9, 20, 0.5);
-            border: 2px solid #e50914;
+            transform: scale(1.1); background: #333; box-shadow: 0px 10px 20px rgba(229, 9, 20, 0.5); border: 2px solid #e50914;
         }
-
-        .progress-bar { 
-            height: 6px; 
-            background: #555; 
-            margin-top: 15px; 
-            border-radius: 5px; 
-            overflow: hidden; 
-        }
+        .progress-bar { height: 6px; background: #555; margin-top: 15px; border-radius: 5px; overflow: hidden; }
+        .progress-fill { height: 100%; background: #e50914; width: 0%; transition: width 0.3s; }
         
-        .progress-fill { 
-            height: 100%; 
-            background: #e50914; 
-            width: 0%; 
+        /* تنسيق طبقة المشغل لتغطية الشاشة بالكامل في التلفاز */
+        #tv-player-container {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
+            background: #000; z-index: 9999; display: flex; align-items: center; justify-content: center;
         }
-        
-        .header-bar {
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            max-width: 1200px; 
-            margin: 0 auto 30px auto;
-        }
-
-        .tab-btn { background: #333; margin: 0 10px; }
-        .tab-btn.active { background: #e50914; }
-        
-        .filters-bar {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin-bottom: 30px;
-        }
+        video { width: 100%; height: 100%; outline: none; background: #000; }
     </style>
 </head>
 <body>
 
     <div id="login-screen">
         <h1 style="font-size: 40px; margin-top: 100px;">تسجيل الدخول</h1>
-        <input type="text" id="xtream-domain" placeholder="رابط السيرفر (مثال: http://domain.com:8080)" tabindex="1"><br>
+        <input type="text" id="xtream-domain" placeholder="رابط السيرفر" tabindex="1"><br>
         <input type="text" id="xtream-user" placeholder="اسم المستخدم" tabindex="2"><br>
         <input type="password" id="xtream-pass" placeholder="كلمة المرور" tabindex="3"><br>
-        <button onclick="saveCredentialsAndLogin()" tabindex="4">دخول وحفظ البيانات</button>
+        <button onclick="saveCredentialsAndLogin()" tabindex="4">دخول</button>
     </div>
 
     <div id="main-screen" class="hidden">
-        <div class="header-bar">
-            <h1>مكتبة البث</h1>
-            <button onclick="logout()" style="background: #555;" tabindex="5">تسجيل خروج</button>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h1>المكتبة</h1>
+            <button onclick="logout()" style="background: #555;">خروج</button>
         </div>
-        
-        <div class="tabs-container" style="margin-bottom: 30px;">
-            <button id="btn-vod" class="tab-btn active" onclick="switchMode('vod')" tabindex="6">🎬 أفلام</button>
-            <button id="btn-series" class="tab-btn" onclick="switchMode('series')" tabindex="7">📺 مسلسلات</button>
-            <button id="btn-live" class="tab-btn" onclick="switchMode('live')" tabindex="8">📡 قنوات</button>
-        </div>
-
-        <div class="filters-bar">
-            <select id="category-selector" onchange="fetchContent(this.value)" tabindex="9">
-                <option value="">جاري التحميل...</option>
-            </select>
-            <input type="text" id="search-input" placeholder="ابحث هنا..." onkeyup="filterResults()" tabindex="10">
-        </div>
-
         <div id="movies-container"></div>
     </div>
 
-    <div id="tv-player-container" class="hidden" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 9999;">
-        </div>
+    <div id="tv-player-container" class="hidden">
+        <video id="tv-video" controls autoplay playsinline webkit-playsinline>
+            <source id="vid-mkv" src="" type="video/x-matroska">
+            <source id="vid-mp4" src="" type="video/mp4">
+        </video>
+    </div>
 
 <script>
-    // إعدادات Supabase
+    // ==========================================
+    // 1. إعدادات قاعدة بيانات سوبابيس (Supabase)
+    // ==========================================
     const SUPABASE_URL = 'https://kpfymvtyqbyjmlqfgujo.supabase.co'; 
     const SUPABASE_ANON_KEY = 'sb_publishable_g7dHfpmPHcQwAWsO9FFuGw_4lG8fyLc'; 
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let currentUser = ''; let currentDomain = ''; let currentPass = '';
-    let currentMode = 'vod'; let allCurrentData = []; let currentMovieId = null;
+    let currentMovieId = null; let isPlaying = false;
 
-    // تهيئة الدخول
+    // ==========================================
+    // 2. نظام تسجيل الدخول وتهيئة التطبيق
+    // ==========================================
     window.onload = function() {
         const savedUser = localStorage.getItem('xtream_user');
         const savedPass = localStorage.getItem('xtream_pass');
@@ -172,7 +90,7 @@
             currentUser = savedUser; currentPass = savedPass; currentDomain = savedDomain;
             showMainScreen();
         } else {
-            document.getElementById('xtream-domain').focus(); // تركيز مؤشر الريموت
+            document.getElementById('xtream-domain').focus();
         }
     };
 
@@ -181,7 +99,7 @@
         const user = document.getElementById('xtream-user').value.trim();
         const pass = document.getElementById('xtream-pass').value.trim();
 
-        if (!domain || !user || !pass) return alert("يرجى تعبئة جميع الحقول!");
+        if (!domain || !user || !pass) return;
 
         const cleanDomain = domain.endsWith('/') ? domain.slice(0, -1) : domain;
         localStorage.setItem('xtream_domain', cleanDomain);
@@ -197,185 +115,140 @@
     function showMainScreen() {
         document.getElementById('login-screen').classList.add('hidden');
         document.getElementById('main-screen').classList.remove('hidden');
-        switchMode('vod'); 
+        fetchContent();
     }
 
-    function switchMode(mode) {
-        currentMode = mode;
-        ['vod', 'series', 'live'].forEach(m => document.getElementById(`btn-${m}`).classList.remove('active'));
-        document.getElementById(`btn-${mode}`).classList.add('active');
-        document.getElementById('search-input').value = '';
-        fetchCategories();
-    }
-
-    async function fetchCategories() {
-        const actions = { 'vod': 'get_vod_categories', 'series': 'get_series_categories', 'live': 'get_live_categories' };
-        const apiUrl = `${currentDomain}/player_api.php?username=${currentUser}&password=${currentPass}&action=${actions[currentMode]}`;
+    // ==========================================
+    // 3. جلب المحتوى والمزامنة مع سوبابيس
+    // ==========================================
+    async function fetchContent() {
+        document.getElementById('movies-container').innerHTML = '<h2>جاري التحميل...</h2>';
+        const apiUrl = `${currentDomain}/player_api.php?username=${currentUser}&password=${currentPass}&action=get_vod_streams`;
         
         try {
             const response = await fetch(apiUrl);
-            const categories = await response.json();
-            const selector = document.getElementById('category-selector');
-            selector.innerHTML = '<option value="all">🌐 الكل (بحث شامل)</option>'; 
+            const movies = await response.json(); 
 
-            categories.forEach(cat => {
-                const option = document.createElement('option');
-                option.value = cat.category_id;
-                option.text = cat.category_name;
-                selector.appendChild(option);
-            });
-
-            fetchContent('all');
-        } catch (error) {
-            document.getElementById('category-selector').innerHTML = '<option value="">خطأ بالتحميل</option>';
-        }
-    }
-
-    async function fetchContent(categoryId) {
-        if (!categoryId) return;
-        document.getElementById('movies-container').innerHTML = '<h2 style="color:#f39c12; margin-top:50px;">⏳ جاري سحب المكتبة...</h2>';
-        
-        const actions = { 'vod': 'get_vod_streams', 'series': 'get_series', 'live': 'get_live_streams' };
-        let apiUrl = `${currentDomain}/player_api.php?username=${currentUser}&password=${currentPass}&action=${actions[currentMode]}`;
-        if (categoryId !== 'all') apiUrl += `&category_id=${categoryId}`;
-        
-        try {
-            const response = await fetch(apiUrl);
-            allCurrentData = await response.json(); 
-
+            // جلب بيانات المشاهدة السابقة من سوبابيس
             let userActivity = [];
             try {
                 const { data } = await supabaseClient.from('user_activity').select('*').eq('username', currentUser);
                 if (data) userActivity = data;
-            } catch(e) {}
+            } catch(e) { console.error("خطأ في جلب بيانات سوبابيس", e); }
 
-            renderDisplay(allCurrentData.slice(0, 100), userActivity); 
+            renderMovies(movies.slice(0, 50), userActivity); // عرض أول 50 فيلم للتجربة
         } catch (error) {
-            document.getElementById('movies-container').innerHTML = '<h2 style="color:red;">حدث خطأ بالاتصال</h2>';
+            document.getElementById('movies-container').innerHTML = '<h2>خطأ في الاتصال بالسيرفر</h2>';
         }
     }
 
-    function filterResults() {
-        const query = document.getElementById('search-input').value.toLowerCase();
-        const filtered = allCurrentData.filter(item => (item.name || "").toLowerCase().includes(query));
-        renderDisplay(filtered.slice(0, 100), []); 
-    }
-
-    function renderDisplay(items, userActivity) {
+    function renderMovies(movies, userActivity) {
         const container = document.getElementById('movies-container');
         container.innerHTML = '';
-        if (!items || items.length === 0) return container.innerHTML = '<h2>لا يوجد محتوى</h2>';
 
-        items.forEach((item, index) => {
-            const id = item.stream_id || item.series_id;
-            const icon = item.stream_icon || item.cover || 'https://via.placeholder.com/200x250?text=بدون+صورة';
-            const activity = userActivity.find(act => act.movie_id == id);
+        movies.forEach((movie, index) => {
+            // التحقق من وجود نقطة توقف في سوبابيس
+            const activity = userActivity.find(act => act.movie_id == movie.stream_id);
             const resumeTime = activity ? activity.resume_time : 0;
             const progressPercent = resumeTime > 0 ? Math.min((resumeTime / 7200) * 100, 100) : 0;
 
+            const ext = movie.container_extension || "mkv";
+            const videoUrl = `${currentDomain}/movie/${currentUser}/${currentPass}/${movie.stream_id}.${ext}`;
+
             const card = document.createElement('div');
-            // نعطي الكرت كلاس focusable ليتعرف عليه ريموت LG، و tabindex للتنقل بالأسهم
             card.className = 'movie-card focusable';
-            card.setAttribute('tabindex', 20 + index); 
-
-            let actionText = '▶ تشغيل';
-            let videoUrl = '';
-
-            if (currentMode === 'live') {
-                videoUrl = `${currentDomain}/${currentUser}/${currentPass}/${id}`;
-                actionText = '📺 تشغيل القناة';
-            } else if (currentMode === 'vod') {
-                const ext = item.container_extension || "mkv";
-                videoUrl = `${currentDomain}/movie/${currentUser}/${currentPass}/${id}.${ext}`;
-                if (resumeTime > 0) actionText = 'إكمال المشاهدة';
-            }
+            card.setAttribute('tabindex', 10 + index); 
 
             card.innerHTML = `
-                <img src="${icon}" onerror="this.src='https://via.placeholder.com/200x250?text=بدون+صورة'">
-                <h3 style="font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.name}</h3>
-                ${currentMode === 'vod' && resumeTime > 0 ? `<div class="progress-bar"><div class="progress-fill" style="width: ${progressPercent}%"></div></div>` : ''}
-                <button class="hidden-play-btn" style="display:none;" onclick="${currentMode === 'series' ? `playSeriesFirstEpisode('${id}')` : `playMovieInTV('${videoUrl}', ${resumeTime}, '${id}')`}"></button>
+                <img src="${movie.stream_icon}" onerror="this.src='https://via.placeholder.com/200x300'">
+                <h3>${movie.name}</h3>
+                ${resumeTime > 0 ? `<div class="progress-bar"><div class="progress-fill" style="width: ${progressPercent}%"></div></div>` : ''}
             `;
 
-            // عند الضغط على الكرت نفسه بالماجيك ريموت يتم التشغيل
-            card.onclick = () => card.querySelector('.hidden-play-btn').click();
-
-            // عند الوقوف بالأسهم والضغط على Enter (زر OK في الريموت)
-            card.addEventListener('keypress', function (e) {
-                if (e.key === 'Enter') card.querySelector('.hidden-play-btn').click();
-            });
+            // عند الضغط على OK في الريموت
+            card.onclick = () => startPlayer(videoUrl, resumeTime, movie.stream_id);
+            card.addEventListener('keypress', (e) => { if (e.key === 'Enter') startPlayer(videoUrl, resumeTime, movie.stream_id); });
 
             container.appendChild(card);
         });
     }
 
-    async function playSeriesFirstEpisode(seriesId) {
-        const apiUrl = `${currentDomain}/player_api.php?username=${currentUser}&password=${currentPass}&action=get_series_info&series_id=${seriesId}`;
-        try {
-            const res = await fetch(apiUrl);
-            const data = await res.json();
-            const seasons = Object.keys(data.episodes);
-            if (seasons.length > 0) {
-                const ep = data.episodes[seasons[0]][0];
-                const url = `${currentDomain}/series/${currentUser}/${currentPass}/${ep.id}.${ep.container_extension || 'mkv'}`;
-                playMovieInTV(url, 0, ep.id);
-            } else alert("لا توجد حلقات.");
-        } catch (e) { alert("خطأ بجلب المسلسل"); }
-    }
-
-    // ========================================================
-    // مشغل الفيديو المخصص لتلفاز LG (يدعم MKV والمزامنة)
-    // ========================================================
-    function playMovieInTV(videoUrl, resumeTime, movieId) {
+    // ==========================================
+    // 4. المشغل ونظام تتبع المشاهدة
+    // ==========================================
+    const videoElement = document.getElementById('tv-video');
+    
+    function startPlayer(url, resumeTime, movieId) {
         currentMovieId = movieId;
+        isPlaying = true;
+        
         document.getElementById('main-screen').classList.add('hidden');
-        
-        const playerContainer = document.getElementById('tv-player-container');
-        
-        // بناء المشغل: نحدد type="video/x-matroska" لإيقاظ محرك فك التشفير الخاص بالتلفاز
-        playerContainer.innerHTML = `
-            <video id="tv-video" width="100%" height="100%" controls autoplay style="background: black;">
-                <source src="${videoUrl}" type="video/x-matroska">
-                <source src="${videoUrl}" type="video/mp4">
-            </video>
-            <button id="close-player-btn" tabindex="1" style="position:absolute; top:20px; right:20px; z-index:10000; background:rgba(0,0,0,0.7); border:2px solid white; font-size:24px;">العودة ✖</button>
-        `;
-        
-        const vid = document.getElementById('tv-video');
-        playerContainer.classList.remove('hidden');
+        document.getElementById('tv-player-container').classList.remove('hidden');
 
-        // تطبيق نقطة التوقف
-        vid.addEventListener('loadedmetadata', () => {
-            if (resumeTime > 0) vid.currentTime = resumeTime;
-        });
-
-        // مزامنة الوقت مع سوبابيس (تعمل بشكل ممتاز لأن مشغل LG يدعم timeupdate)
-        vid.addEventListener('timeupdate', () => {
-            if (currentMode !== 'live' && Math.floor(vid.currentTime) % 5 === 0 && Math.floor(vid.currentTime) > 0) {
-                window.updateWatchProgress(Math.floor(vid.currentTime));
-            }
-        });
-
-        // زر العودة والخروج من المشغل
-        const closeBtn = document.getElementById('close-player-btn');
-        closeBtn.focus(); // إعطاء التركيز للزر ليسهل الخروج بالريموت
+        document.getElementById('vid-mkv').src = url;
+        document.getElementById('vid-mp4').src = url;
         
-        closeBtn.onclick = () => {
-            vid.pause();
-            vid.src = ""; // تفريغ الذاكرة
-            playerContainer.innerHTML = ''; // مسح المشغل
-            playerContainer.classList.add('hidden');
-            document.getElementById('main-screen').classList.remove('hidden');
-            fetchContent('all'); // تحديث الواجهة لرسم أشرطة التقدم الجديدة
+        videoElement.load();
+        
+        // الانتقال لنقطة التوقف
+        videoElement.onloadedmetadata = () => {
+            if (resumeTime > 0) videoElement.currentTime = resumeTime;
         };
+        videoElement.play();
     }
 
-    window.updateWatchProgress = async function(currentSeconds) {
-        if (!currentMovieId || !currentUser || currentMode === 'live') return; 
+    // حفظ نقطة التوقف في سوبابيس كل 5 ثوانٍ
+    videoElement.addEventListener('timeupdate', () => {
+        if (!isPlaying || !currentMovieId) return;
+        const currentSeconds = Math.floor(videoElement.currentTime);
+        
+        // التحديث كل 5 ثوانٍ لتقليل الضغط على السيرفر
+        if (currentSeconds > 0 && currentSeconds % 5 === 0) {
+            syncToSupabase(currentSeconds);
+        }
+    });
+
+    async function syncToSupabase(seconds) {
         await supabaseClient.from('user_activity').upsert({ 
-            username: currentUser, movie_id: currentMovieId, resume_time: currentSeconds 
+            username: currentUser, 
+            movie_id: currentMovieId, 
+            resume_time: seconds 
         }, { onConflict: 'username, movie_id' });
-    };
+    }
+
+    // ==========================================
+    // 5. التفاعل مع أزرار ريموت LG (الماجيك ريموت)
+    // ==========================================
+    document.addEventListener('keydown', (e) => {
+        if (!isPlaying) return; // تفعيل الأزرار فقط أثناء عرض الفيديو
+
+        switch(e.keyCode) {
+            case 37: // سهم يسار (تأخير 10 ثوانٍ)
+                videoElement.currentTime -= 10;
+                break;
+            case 39: // سهم يمين (تقديم 10 ثوانٍ)
+                videoElement.currentTime += 10;
+                break;
+            case 13: // زر OK (تشغيل / إيقاف مؤقت)
+                videoElement.paused ? videoElement.play() : videoElement.pause();
+                break;
+            case 461: // زر الرجوع (Back) الخاص بتلفاز LG
+            case 27:  // زر الهروب (Esc) للتجربة على الكمبيوتر
+            case 8:   // زر Backspace
+                closePlayer();
+                e.preventDefault(); // منع التلفاز من الخروج من التطبيق بالكامل
+                break;
+        }
+    });
+
+    function closePlayer() {
+        isPlaying = false;
+        videoElement.pause();
+        videoElement.src = ""; // إفراغ الذاكرة
+        document.getElementById('tv-player-container').classList.add('hidden');
+        document.getElementById('main-screen').classList.remove('hidden');
+        fetchContent(); // إعادة تحميل الواجهة لتحديث أشرطة التقدم بصرياً
+    }
 </script>
 </body>
 </html>
