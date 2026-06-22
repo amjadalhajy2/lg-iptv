@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1920, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
-    <title>Stream IPTV - Premium Ultimate TV UI</title>
+    <title>Stream IPTV - Ultimate Grid UI</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --bg: #0a0a0a; --primary: #e50914; --text: #ffffff; --card-w: 16vw; --card-h: 24vw; }
+        :root { --bg: #0a0a0a; --primary: #e50914; --text: #ffffff; }
         
         body { 
             background-color: var(--bg); color: var(--text); font-family: 'Segoe UI', Tahoma, sans-serif; 
@@ -15,13 +15,11 @@
         ::-webkit-scrollbar { display: none; }
         .hidden { display: none !important; }
 
-        /* الشاشات المستقلة - تدعم التمرير بالعجلة الدوارة بشكل مستقل وثابت */
         .scrollable-screen {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
             overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth; z-index: 50; background: var(--bg);
         }
 
-        /* شريط الإشعارات الجانبي للأخطاء والمزامنة */
         #toast {
             visibility: hidden; min-width: 25vw; background-color: rgba(229, 9, 20, 0.95); color: #fff;
             text-align: center; border-radius: 0.5vw; padding: 1vw 2vw; position: fixed;
@@ -30,12 +28,11 @@
         }
         #toast.show { visibility: visible; opacity: 1; }
 
-        /* الشريط العلوي الشفاف وثابت التصفح */
+        /* الشريط العلوي */
         header {
             position: fixed; top: 0; left: 0; width: 100%; height: 14vh; padding: 0 4vw;
             background: linear-gradient(to bottom, rgba(0,0,0,0.95) 0%, transparent 100%);
-            display: flex; align-items: center; justify-content: space-between; z-index: 100; box-sizing: border-box;
-            text-shadow: 2px 2px 5px rgba(0,0,0,0.8);
+            display: flex; align-items: center; justify-content: space-between; z-index: 100; box-sizing: border-box; text-shadow: 2px 2px 5px rgba(0,0,0,0.8);
         }
         header.scrolled { background: rgba(10,10,10,0.98); border-bottom: 0.1vw solid rgba(255,255,255,0.1); }
         .logo { font-size: 2.5vw; font-weight: 900; color: var(--primary); letter-spacing: 2px; }
@@ -44,80 +41,95 @@
         .nav-item:focus, .nav-item:hover, .nav-item.active { opacity: 1; transform: scale(1.1); background: rgba(255,255,255,0.15); }
         
         .search-box input {
-            background: rgba(255,255,255,0.15); border: 0.1vw solid rgba(255,255,255,0.3);
-            color: white; padding: 0.8vw 1.5vw; border-radius: 30px; font-size: 1.2vw;
-            outline: none; transition: 0.3s; width: 14vw; font-family: inherit;
+            background: rgba(255,255,255,0.15); border: 0.1vw solid rgba(255,255,255,0.3); color: white; padding: 0.8vw 1.5vw; border-radius: 30px; font-size: 1.2vw; outline: none; transition: 0.3s; width: 14vw; font-family: inherit;
         }
         .search-box input:focus { background: rgba(0,0,0,0.9); width: 24vw; border-color: var(--primary); box-shadow: 0 0 1.5vw var(--primary); }
         .user-info { display: flex; align-items: center; gap: 1vw; font-size: 1.3vw; font-weight: bold; }
 
-        /* منطقة القوائم */
+        /* منطقة المحتوى العام */
         #main-content { padding-top: 16vh; padding-bottom: 10vh; }
-        .row-container { margin-bottom: 6vh; position: relative; }
+        
+        /* قسم متابعة المشاهدة (أفقي) */
+        .row-container { margin-bottom: 4vh; position: relative; }
         .row-title { font-size: 1.8vw; font-weight: bold; margin: 0 4vw 2vh 0; opacity: 0.9; text-shadow: 1px 1px 3px black; }
         .row-inner { display: flex; gap: 1.5vw; overflow-x: auto; padding: 1vh 4vw; scroll-behavior: smooth; }
-        
-        .scroll-btn {
-            position: absolute; top: 55%; transform: translateY(-50%);
-            background: rgba(20,20,20,0.7); color: white; border: 0.1vw solid rgba(255,255,255,0.2);
-            font-size: 2vw; width: 4vw; height: 4vw; border-radius: 50%; cursor: pointer; z-index: 10;
-            display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px); transition: 0.3s; outline: none;
-        }
-        .scroll-btn:focus, .scroll-btn:hover { background: var(--primary); border-color: white; transform: translateY(-50%) scale(1.1); }
-        .scroll-btn.right { right: 1vw; }
-        .scroll-btn.left { left: 1vw; }
+        .row-inner .card { width: 16vw; height: 24vw; flex: 0 0 auto; }
 
-        .card {
-            flex: 0 0 auto; width: var(--card-w); height: var(--card-h); border-radius: 0.5vw; overflow: hidden; position: relative;
-            background: #222; cursor: pointer; outline: none; transition: transform 0.3s ease, border 0.3s ease;
-            padding: 0; margin: 0; border: 0.3vw solid transparent; display: block;
+        /* شريط التصنيفات (Chips) */
+        .categories-row {
+            display: flex; gap: 1vw; overflow-x: auto; padding: 1vh 4vw; margin-bottom: 4vh; scroll-behavior: smooth;
         }
-        .card img { width: 100%; height: 100%; object-fit: cover; }
-        .card:focus, .card:hover { transform: scale(1.08) translateY(-1vh); border-color: white; z-index: 5; box-shadow: 0 2vh 4vh rgba(0,0,0,0.9); }
+        .category-chip {
+            background: rgba(255,255,255,0.1); color: white; padding: 1.5vh 2.5vw; border-radius: 30px; 
+            font-size: 1.4vw; font-weight: bold; cursor: pointer; border: 0.15vw solid transparent; 
+            transition: 0.3s; white-space: nowrap; outline: none;
+        }
+        .category-chip:focus, .category-chip:hover, .category-chip.active { background: var(--primary); border-color: white; transform: scale(1.05); }
+
+        /* الشبكة العمودية للأفلام (Grid) */
+        .grid-container {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(13vw, 1fr)); gap: 1.5vw; padding: 0 4vw; margin-bottom: 5vh;
+        }
+
+        /* البطاقات وتأثير الصورة البديلة (Fallback) */
+        .card {
+            border-radius: 0.5vw; overflow: hidden; position: relative; background: #1a1a1a; cursor: pointer; outline: none; 
+            transition: transform 0.3s ease, border 0.3s ease; padding: 0; margin: 0; border: 0.25vw solid transparent; display: block;
+            width: 100%; aspect-ratio: 2 / 3; /* يحافظ على نسبة طول وعرض متناسقة للبوستر */
+        }
         
-        .progress-bar { position: absolute; bottom: 0; width: 100%; height: 0.8vh; background: rgba(0,0,0,0.6); }
+        .fallback-text {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; 
+            justify-content: center; text-align: center; padding: 1vw; font-size: 1.4vw; color: white; 
+            background: linear-gradient(45deg, #111, #333); z-index: 1; font-weight: bold; line-height: 1.5; box-sizing: border-box; text-shadow: 2px 2px 4px black;
+        }
+        
+        .card img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 2; transition: opacity 0.3s; }
+        
+        .card:focus, .card:hover { transform: scale(1.08) translateY(-1vh); border-color: white; z-index: 5; box-shadow: 0 2vh 4vh rgba(0,0,0,0.9); }
+        .progress-bar { position: absolute; bottom: 0; width: 100%; height: 0.8vh; background: rgba(0,0,0,0.6); z-index: 3; }
         .progress-fill { height: 100%; background: var(--primary); }
 
-        /* شاشة التفاصيل الهندسية (توزيع ثلاثي الأبعاد لـ 65 بوصة) */
+        /* زر التحميل الإضافي */
+        .load-more-container { text-align: center; padding-bottom: 5vh; }
+        .load-more-btn {
+            background: rgba(40,40,40,0.9); color: white; padding: 2vh 4vw; font-size: 1.5vw; 
+            border-radius: 1vw; border: 0.1vw solid rgba(255,255,255,0.2); cursor: pointer; 
+            transition: 0.3s; font-weight: bold; outline: none;
+        }
+        .load-more-btn:focus, .load-more-btn:hover { background: var(--primary); border-color: white; transform: scale(1.05); }
+
+        /* شاشة التفاصيل */
         #details-screen { padding: 6vh 4vw; box-sizing: border-box; background-size: cover; background-position: center; box-shadow: inset 0 0 80vw 60vw rgba(0,0,0,0.98); z-index: 200; }
         .details-layout { display: flex; gap: 4vw; height: 88vh; align-items: stretch; }
-        
-        /* يمين: الصورة بكامل طول الشاشة */
-        .details-poster-col { flex: 0 0 24vw; height: 100%; }
-        .details-poster { width: 100%; height: 100%; object-fit: cover; border-radius: 1vw; box-shadow: 0 2vh 6vh rgba(0,0,0,0.9); }
-
-        /* منتصف: الأزرار أولاً ثم البيانات الوصفية ثم القصة والوصف أسفلهم */
+        .details-poster-col { flex: 0 0 24vw; height: 100%; position: relative; }
+        .details-poster { width: 100%; height: 100%; object-fit: cover; border-radius: 1vw; box-shadow: 0 2vh 6vh rgba(0,0,0,0.9); position: relative; z-index: 2; }
         .details-info-col { flex: 1; display: flex; flex-direction: column; gap: 3.5vh; padding-top: 1vh; justify-content: flex-start; }
         .details-title { font-size: 3.8vw; font-weight: bold; margin: 0; text-shadow: 2px 2px 8px black; line-height: 1.2; }
         .action-bar { display: flex; gap: 1.5vw; align-items: center; flex-wrap: wrap; }
-        
         .action-btn { background: var(--text); color: black; border: none; padding: 1.5vh 3vw; font-size: 1.4vw; font-weight: bold; border-radius: 0.5vw; cursor: pointer; outline: none; transition: 0.3s; display: flex; align-items: center; gap: 0.5vw; }
         .action-btn.fav { background: rgba(50,50,50,0.8); color: white; border: 0.1vw solid white; backdrop-filter: blur(5px); }
         .action-btn:focus, .action-btn:hover { transform: scale(1.05); background: var(--primary); color: white; border-color: var(--primary); }
         .seasons-select { background: rgba(30,30,30,0.85); color: white; padding: 1.5vh 2vw; font-size: 1.4vw; border: 0.1vw solid white; border-radius: 0.5vw; outline: none; cursor: pointer; }
         .seasons-select:focus { border-color: var(--primary); background: #000; }
-
         .details-meta { font-size: 1.3vw; color: #ccc; font-weight: 600; display: flex; gap: 1.5vw; text-shadow: 1px 1px 3px black; background: rgba(255,255,255,0.05); padding: 1vh 1.5vw; border-radius: 0.5vw; width: fit-content; }
         .details-desc { font-size: 1.25vw; line-height: 1.8; opacity: 0.85; text-shadow: 1px 1px 3px black; max-width: 95%; margin: 0; }
-
-        /* يسار: عمود الحلقات المنفرد للمسلسلات */
         .details-episodes-col { flex: 0 0 25vw; height: 100%; overflow-y: auto; padding-left: 0.5vw; }
         .episodes-list-vertical { display: flex; flex-direction: column; gap: 1.5vh; padding-bottom: 5vh; }
         .ep-card { background: rgba(35,35,35,0.85); padding: 2vh; border-radius: 0.5vw; cursor: pointer; outline: none; transition: 0.3s; display: flex; justify-content: space-between; align-items: center; border: 0.1vw solid transparent; color: white; font-size: 1.2vw; }
         .ep-card:focus, .ep-card:hover { background: var(--text); color: black; transform: scale(1.03); border-color: white; }
 
-        /* الشاشات الفرعية */
-        #profiles-screen, #login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: var(--bg); position: fixed; top:0; width:100%; z-index: 500; }
+        /* شاشات الحسابات */
+        #profiles-screen, #login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 500; }
         .profiles-container { display: flex; gap: 3vw; margin-top: 5vh; flex-wrap: wrap; justify-content: center; }
         .profile-card { width: 12vw; height: 12vw; background: #222; border-radius: 1vw; display: flex; align-items: center; justify-content: center; font-size: 2.5vw; font-weight: bold; cursor: pointer; outline: none; transition: 0.3s; border: 0.2vw solid transparent; color: white; }
         .profile-card:focus, .profile-card:hover { background: var(--text); color: black; transform: scale(1.1); border-color: var(--primary); }
         .login-box input { width: 25vw; padding: 1.5vh; margin: 1vh 0; font-size: 1.2vw; border-radius: 5px; border: none; outline: none; }
         .login-box button { width: 25vw; padding: 1.5vh; font-size: 1.5vw; background: var(--primary); color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 2vh; }
-
         #add-modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); z-index: 1000; display: flex; justify-content: center; align-items: center; }
         .modal-box { background: #1a1a1a; padding: 4vw; border-radius: 1vw; text-align: center; border: 0.1vw solid #444; }
         .modal-box input { width: 20vw; padding: 1.5vw; font-size: 1.5vw; margin: 2vw 0; border-radius: 5px; border: none; outline: none; text-align: center; }
-
+        
         #player-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 9999; }
         video { width: 100%; height: 100%; outline: none; background: #000; }
     </style>
@@ -161,7 +173,7 @@
                 <button class="nav-item focusable" onclick="loadPage('live')">القنوات</button>
                 <button class="nav-item focusable" onclick="loadPage('favorites')">مفضلاتي</button>
                 <div class="search-box">
-                    <input type="text" id="search-input" class="focusable" placeholder="🔍 ابحث في السيرفر كاملاً..." onkeyup="handleSearch()">
+                    <input type="text" id="search-input" class="focusable" placeholder="🔍 بحث عالمي..." onkeyup="handleSearch()">
                 </div>
             </div>
             <div class="user-info">
@@ -171,15 +183,22 @@
         </header>
 
         <div id="main-content">
+            <!-- 1. المتابعة أفقية -->
             <div id="continue-watching-container"></div>
-            <div id="rows-container"></div>
+            <!-- 2. شريط التصنيفات أفقي -->
+            <div id="categories-container"></div>
+            <!-- 3. قائمة الأفلام عمودية (شبكة) -->
+            <div id="grid-container" class="grid-container"></div>
+            <!-- 4. زر التحميل الإضافي -->
+            <div id="load-more-container" class="load-more-container"></div>
         </div>
     </div>
 
     <div id="details-screen" class="scrollable-screen hidden">
         <div class="details-layout" id="details-layout-container">
             <div class="details-poster-col">
-                <img id="detail-poster" class="details-poster" src="">
+                <div class="fallback-text" id="detail-fallback-text" style="border-radius: 1vw;"></div>
+                <img id="detail-poster" class="details-poster" src="" onerror="this.style.opacity=0; document.getElementById('detail-fallback-text').style.opacity=1;" onload="this.style.opacity=1; document.getElementById('detail-fallback-text').style.opacity=0;">
             </div>
             <div class="details-info-col">
                 <h1 id="detail-title" class="details-title"></h1>
@@ -208,6 +227,11 @@
     let isPlaying = false;
     let activeStreamData = null; 
     let searchTimeout = null;
+
+    // متغيرات نظام تقسيم الصفحات (Pagination)
+    let currentCategoryItems = [];
+    let displayedItemsCount = 0;
+    const ITEMS_PER_PAGE = 50;
 
     function showToast(msg) {
         const t = document.getElementById('toast');
@@ -252,7 +276,6 @@
         
         const container = document.getElementById('profiles-list');
         container.innerHTML = '<h2>جاري جلب المستخدمين...</h2>';
-
         try {
             const { data, error } = await supabaseClient.from('profiles').select('profile_name').eq('username', iptv.user);
             if(error) throw error; container.innerHTML = '';
@@ -269,8 +292,7 @@
 
     function renderProfileCard(name) {
         const card = document.createElement('button');
-        card.className = 'profile-card focusable';
-        card.innerText = name; card.onclick = () => selectProfile(name);
+        card.className = 'profile-card focusable'; card.innerText = name; card.onclick = () => selectProfile(name);
         card.addEventListener('mouseenter', () => card.focus());
         document.getElementById('profiles-list').appendChild(card);
     }
@@ -290,7 +312,7 @@
                 { username: iptv.user, profile_name: name }, { onConflict: 'username,profile_name' }
             );
             if(error) showToast('خطأ: ' + error.message);
-            else showToast('تمت إضافة المستخدم الجديد');
+            else showToast('تمت إضافة المستخدم');
             fetchProfilesFromSupabase();
         }
     }
@@ -309,33 +331,36 @@
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(async () => {
             const query = document.getElementById('search-input').value.toLowerCase().trim();
-            const container = document.getElementById('rows-container');
             if (query === '') { loadPage(currentTab); return; }
             
-            container.innerHTML = '<h2 style="padding:5vw; text-align:center;">🔍 جاري البحث السحابي في كامل خوادم IPTV...</h2>';
             document.getElementById('continue-watching-container').innerHTML = ''; 
+            document.getElementById('categories-container').innerHTML = ''; 
+            document.getElementById('grid-container').innerHTML = '<h2 style="padding:5vw; grid-column: 1 / -1; text-align:center;">🔍 جاري البحث عالمياً...</h2>';
+            document.getElementById('load-more-container').innerHTML = '';
 
             let action = currentTab === 'movies' ? 'get_vod_streams' : (currentTab === 'series' ? 'get_series' : 'get_live_streams');
             
             try {
                 const res = await fetch(`${iptv.domain}/player_api.php?username=${iptv.user}&password=${iptv.pass}&action=${action}`);
                 const allItems = await res.json();
-                const filteredResults = allItems.filter(item => {
+                currentCategoryItems = allItems.filter(item => {
                     const name = (item.name || item.title || '').toLowerCase();
                     return name.includes(query);
                 });
                 
-                container.innerHTML = '';
-                if(filteredResults.length > 0) {
-                    buildRow(`نتائج البحث العالمي: "${query}" (${filteredResults.length})`, filteredResults.slice(0, 100), currentTab === 'movies' ? 'movie' : (currentTab === 'series' ? 'series' : 'live'));
-                    autoFocusFirstElement();
+                document.getElementById('grid-container').innerHTML = '';
+                displayedItemsCount = 0;
+                
+                if(currentCategoryItems.length > 0) {
+                    renderGridItems(currentTab === 'movies' ? 'movie' : (currentTab === 'series' ? 'series' : 'live'));
                 } else {
-                    container.innerHTML = '<h2 style="padding:5vw; text-align:center;">❌ لم نجد نتائج تطابق هذا الاسم.</h2>';
+                    document.getElementById('grid-container').innerHTML = '<h2 style="padding:5vw; grid-column: 1 / -1; text-align:center;">❌ لم نجد نتائج.</h2>';
                 }
-            } catch (e) { container.innerHTML = '<h2 style="padding:5vw; text-align:center;">تعذر إتمام البحث العالمي.</h2>'; }
+            } catch (e) { document.getElementById('grid-container').innerHTML = '<h2 style="padding:5vw; grid-column: 1 / -1; text-align:center;">خطأ في البحث.</h2>'; }
         }, 800);
     }
 
+    // --- تحميل الصفحة الرئيسية وترتيب الأقسام ---
     async function loadPage(type) {
         currentTab = type;
         document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
@@ -343,66 +368,123 @@
         document.getElementById('search-input').value = '';
 
         document.getElementById('continue-watching-container').innerHTML = ''; 
-        document.getElementById('rows-container').innerHTML = '<h2 style="padding:4vw;">جاري استدعاء القوائم...</h2>';
+        document.getElementById('categories-container').innerHTML = '<h2 style="padding:4vw;">جاري تحميل التصنيفات...</h2>';
+        document.getElementById('grid-container').innerHTML = '';
+        document.getElementById('load-more-container').innerHTML = '';
 
         if (type === 'movies') {
             await loadSupabaseRows('user_activity', `متابعة المشاهدة`, 'movie');
-            await fetchAndBuildRows('get_vod_categories', 'get_vod_streams', 'movie');
+            await fetchCategories('get_vod_categories', 'movie');
         } else if (type === 'series') {
             await loadSupabaseRows('user_activity', `متابعة المشاهدة`, 'series');
-            await fetchAndBuildRows('get_series_categories', 'get_series', 'series');
+            await fetchCategories('get_series_categories', 'series');
         } else if (type === 'live') {
-            await fetchAndBuildRows('get_live_categories', 'get_live_streams', 'live');
+            await fetchCategories('get_live_categories', 'live');
         } else if (type === 'favorites') {
-            await loadSupabaseRows('favorites', `قائمة مفضلاتي الشاملة`, null);
-            document.getElementById('rows-container').innerHTML = ''; 
+            document.getElementById('categories-container').innerHTML = '';
+            await loadSupabaseRows('favorites', `مفضلاتي الشاملة`, null);
         }
         autoFocusFirstElement();
     }
 
-    async function fetchAndBuildRows(catAction, streamAction, itemType) {
-        const container = document.getElementById('rows-container');
+    // --- جلب شريط التصنيفات الجانبي (الأزرار البيضاوية) ---
+    async function fetchCategories(catAction, itemType) {
         try {
             const resCat = await fetch(`${iptv.domain}/player_api.php?username=${iptv.user}&password=${iptv.pass}&action=${catAction}`);
-            const cats = await resCat.json(); container.innerHTML = '';
+            const cats = await resCat.json(); 
+            
+            let html = `<div class="categories-row">`;
+            cats.forEach((cat, index) => {
+                html += `<button class="category-chip focusable ${index === 0 ? 'active' : ''}" tabindex="0" data-id="${cat.category_id}">${cat.category_name}</button>`;
+            });
+            html += `</div>`;
+            document.getElementById('categories-container').innerHTML = html;
 
-            for (let i = 0; i < Math.min(cats.length, 6); i++) {
-                const resStreams = await fetch(`${iptv.domain}/player_api.php?username=${iptv.user}&password=${iptv.pass}&action=${streamAction}&category_id=${cats[i].category_id}`);
-                const streams = await resStreams.json();
-                if(streams.length > 0) buildRow(cats[i].category_name, streams.slice(0, 20), itemType);
+            const chips = document.querySelectorAll('.category-chip');
+            chips.forEach(chip => {
+                chip.onclick = () => {
+                    chips.forEach(c => c.classList.remove('active'));
+                    chip.classList.add('active');
+                    let streamAction = itemType === 'movie' ? 'get_vod_streams' : (itemType === 'series' ? 'get_series' : 'get_live_streams');
+                    loadCategoryItems(chip.getAttribute('data-id'), streamAction, itemType);
+                };
+                chip.addEventListener('mouseenter', () => chip.focus());
+            });
+
+            // تحميل أول تصنيف تلقائياً
+            if(cats.length > 0) {
+                let streamAction = itemType === 'movie' ? 'get_vod_streams' : (itemType === 'series' ? 'get_series' : 'get_live_streams');
+                loadCategoryItems(cats[0].category_id, streamAction, itemType);
             }
-        } catch (e) { container.innerHTML = '<h2 style="padding:4vw;">خطأ في الاتصال بالسيرفر الرئيسي</h2>'; }
+        } catch (e) { document.getElementById('categories-container').innerHTML = '<h2 style="padding:4vw;">خطأ في جلب التصنيفات</h2>'; }
     }
 
-    function buildRow(title, items, type) {
-        const wrapper = document.createElement('div'); wrapper.className = 'row-container';
-        const btnRight = document.createElement('button'); btnRight.className = 'scroll-btn right focusable'; btnRight.innerHTML = '▶';
-        const btnLeft = document.createElement('button'); btnLeft.className = 'scroll-btn left focusable'; btnLeft.innerHTML = '◀';
+    // --- جلب أفلام التصنيف المختار للشبكة العمودية ---
+    async function loadCategoryItems(catId, streamAction, itemType) {
+        document.getElementById('grid-container').innerHTML = '<h2 style="padding:4vw; grid-column: 1 / -1; text-align:center;">جاري تحميل المكتبة...</h2>';
+        document.getElementById('load-more-container').innerHTML = '';
+        try {
+            const res = await fetch(`${iptv.domain}/player_api.php?username=${iptv.user}&password=${iptv.pass}&action=${streamAction}&category_id=${catId}`);
+            currentCategoryItems = await res.json();
+            displayedItemsCount = 0;
+            
+            document.getElementById('grid-container').innerHTML = '';
+            if(currentCategoryItems.length > 0) {
+                renderGridItems(itemType);
+            } else {
+                document.getElementById('grid-container').innerHTML = '<h2 style="padding:4vw; grid-column: 1 / -1; text-align:center;">هذا التصنيف فارغ.</h2>';
+            }
+        } catch(e) { document.getElementById('grid-container').innerHTML = '<h2 style="padding:4vw; grid-column: 1 / -1; text-align:center;">خطأ في السيرفر.</h2>'; }
+    }
+
+    // --- رسم الشبكة العمودية مع خاصية (Load More) والصورة البديلة ---
+    function renderGridItems(type, append = false) {
+        const container = document.getElementById('grid-container');
+        if (!append) container.innerHTML = '';
+
+        const nextBatch = currentCategoryItems.slice(displayedItemsCount, displayedItemsCount + ITEMS_PER_PAGE);
         
-        wrapper.innerHTML = `<div class="row-title">${title}</div>`;
-        const inner = document.createElement('div'); inner.className = 'row-inner';
-
-        btnRight.onclick = () => inner.scrollBy({ left: 800, behavior: 'smooth' });
-        btnLeft.onclick = () => inner.scrollBy({ left: -800, behavior: 'smooth' });
-
-        items.forEach(item => {
+        nextBatch.forEach(item => {
             const card = document.createElement('button');
             card.className = 'card focusable';
             card.setAttribute('data-title', (item.name || item.title || '').toLowerCase());
             
-            const imgUrl = item.stream_icon || item.cover || 'https://via.placeholder.com/300x450/222/fff?text=No+Poster';
-            card.innerHTML = `<img src="${imgUrl}" onerror="this.src='https://via.placeholder.com/300x450/222/fff?text=Poster'">`;
+            const title = item.name || item.title || 'بدون اسم';
+            const imgUrl = item.stream_icon || item.cover || '';
+            
+            // الصورة البديلة (CSS خدعة): النص في الأسفل والصورة فوقه، إذا فشلت الصورة تختفي ويظهر النص
+            card.innerHTML = `
+                <div class="fallback-text">${title}</div>
+                <img src="${imgUrl}" onerror="this.style.opacity=0">
+            `;
             
             card.addEventListener('mouseenter', (e) => e.target.focus());
             card.onclick = () => type === 'live' ? playStream(item.stream_id, 'live', '') : openDetails(item, type);
-            inner.appendChild(card);
+            container.appendChild(card);
         });
-        
-        wrapper.appendChild(btnRight); wrapper.appendChild(inner); wrapper.appendChild(btnLeft);
-        document.getElementById('rows-container').appendChild(wrapper);
+
+        displayedItemsCount += nextBatch.length;
+
+        // زر التحميل إذا كان هناك بقية
+        const loadMoreContainer = document.getElementById('load-more-container');
+        if (displayedItemsCount < currentCategoryItems.length) {
+            loadMoreContainer.innerHTML = `<button class="load-more-btn focusable" onclick="loadMoreItems('${type}')">تحميل 50 عنصر إضافي ↓</button>`;
+        } else {
+            loadMoreContainer.innerHTML = '';
+        }
     }
 
-    // --- جلب وعرض البيانات من سوبابيس (المتابعة والمفضلات) ---
+    function loadMoreItems(type) {
+        renderGridItems(type, true);
+        setTimeout(() => {
+            const cards = document.querySelectorAll('#grid-container .card');
+            if(cards.length > displayedItemsCount - ITEMS_PER_PAGE) {
+                cards[displayedItemsCount - ITEMS_PER_PAGE].focus();
+            }
+        }, 100);
+    }
+
+    // --- جلب بيانات المتابعة والمفضلات ---
     async function loadSupabaseRows(tableName, rowTitle, filterType) {
         const container = document.getElementById('continue-watching-container');
         try {
@@ -415,52 +497,46 @@
 
             if(data && data.length > 0) {
                 const wrapper = document.createElement('div'); wrapper.className = 'row-container';
-                const btnRight = document.createElement('button'); btnRight.className = 'scroll-btn right focusable'; btnRight.innerHTML = '▶';
-                const btnLeft = document.createElement('button'); btnLeft.className = 'scroll-btn left focusable'; btnLeft.innerHTML = '◀';
-                
                 wrapper.innerHTML = `<div class="row-title">${rowTitle}</div>`;
                 const inner = document.createElement('div'); inner.className = 'row-inner';
-                btnRight.onclick = () => inner.scrollBy({ left: 800, behavior: 'smooth' });
-                btnLeft.onclick = () => inner.scrollBy({ left: -800, behavior: 'smooth' });
 
                 data.forEach(row => {
                     let obj = row.item_data;
                     if(typeof obj === 'string') { try { obj = JSON.parse(obj); } catch(e) {} }
                     if(!obj) return;
 
+                    const title = obj.name || obj.title || 'بدون اسم';
+                    const imgUrl = obj.stream_icon || obj.cover || '';
+                    const progress = row.resume_time > 0 ? Math.min((row.resume_time / 7200) * 100, 100) : 0;
+
                     const card = document.createElement('button');
                     card.className = 'card focusable';
-                    card.setAttribute('data-title', (obj.name || obj.title || '').toLowerCase());
-                    const progress = row.resume_time > 0 ? Math.min((row.resume_time / 7200) * 100, 100) : 0;
                     
+                    // استخدام نفس مبدأ الصورة البديلة
                     card.innerHTML = `
-                        <img src="${obj.stream_icon || obj.cover}" onerror="this.src='https://via.placeholder.com/300x450/222/fff?text=Poster'">
+                        <div class="fallback-text">${title}</div>
+                        <img src="${imgUrl}" onerror="this.style.opacity=0">
                         ${tableName === 'user_activity' ? `<div class="progress-bar"><div class="progress-fill" style="width: ${progress}%"></div></div>` : ''}
                     `;
                     card.addEventListener('mouseenter', (e) => e.target.focus());
                     
                     card.onclick = () => {
-                        // تعديل استراتيجي: نمرر كائن المسلسل العام المحفوظ سحابياً بالكامل، مع تزويده ببيانات الحلقة التنافسية المحفوظة
                         activeStreamData = { 
-                            ...obj, 
-                            type: row.item_type, 
-                            id: row.movie_id, 
-                            resume_time: row.resume_time,
-                            current_episode_id: obj.current_episode_id || null,
-                            current_episode_num: obj.current_episode_num || null,
+                            ...obj, type: row.item_type, id: row.movie_id || row.item_id, resume_time: row.resume_time,
+                            current_episode_id: obj.current_episode_id || null, current_episode_num: obj.current_episode_num || null,
                             current_episode_ext: obj.current_episode_ext || 'mkv'
                         };
                         openDetails(obj, row.item_type);
                     };
                     inner.appendChild(card);
                 });
-                wrapper.appendChild(btnRight); wrapper.appendChild(inner); wrapper.appendChild(btnLeft);
+                wrapper.appendChild(inner);
                 container.appendChild(wrapper);
             }
         } catch(e) { console.error("Error loading Continue Watching:", e); }
     }
 
-    // --- شاشة العرض الفاخرة ثلاثية الأبعاد (مصححة للمسلسلات) ---
+    // --- شاشة العرض الفاخرة ---
     async function openDetails(item, type) {
         history.pushState({view: 'details'}, 'Details', '#details');
         document.getElementById('main-screen').classList.add('hidden');
@@ -469,32 +545,25 @@
         
         const id = item.stream_id || item.series_id || (activeStreamData ? activeStreamData.id : null);
         
-        // التحقق الآمن والمباشر من تقدم المشاهدة للمسلسل/الفيلم من الجدول لمنع التصفير التلقائي
         try {
             const { data: currentAct } = await supabaseClient.from('user_activity').select('*').eq('username', iptv.user).eq('profile_name', currentProfile).eq('movie_id', String(id)).maybeSingle();
             
             if(currentAct) {
                 let parsedData = currentAct.item_data;
                 if(typeof parsedData === 'string') parsedData = JSON.parse(parsedData);
-                
                 activeStreamData = { 
-                    ...item, 
-                    type, 
-                    id, 
-                    resume_time: currentAct.resume_time,
-                    current_episode_id: parsedData.current_episode_id || null,
-                    current_episode_num: parsedData.current_episode_num || null,
+                    ...item, type, id, resume_time: currentAct.resume_time,
+                    current_episode_id: parsedData.current_episode_id || null, current_episode_num: parsedData.current_episode_num || null,
                     current_episode_ext: parsedData.current_episode_ext || 'mkv'
                 };
-            } else {
-                activeStreamData = { ...item, type, id, resume_time: 0 };
-            }
+            } else { activeStreamData = { ...item, type, id, resume_time: 0 }; }
         } catch (err) { activeStreamData = { ...item, type, id, resume_time: 0 }; }
 
-        // تعبئة البيانات العامة للمسلسل/الفيلم دائماً (منعاً لظهور بيانات الحلقة المنفردة)
-        document.getElementById('detail-title').innerText = item.name || item.title || 'بدون اسم';
+        const title = item.name || item.title || 'بدون اسم';
+        document.getElementById('detail-title').innerText = title;
+        document.getElementById('detail-fallback-text').innerText = title;
         document.getElementById('detail-poster').src = item.stream_icon || item.cover;
-        document.getElementById('details-screen').style.backgroundImage = `linear-gradient(to right, rgba(10,10,10,1) 40%, rgba(10,10,10,0.8) 100%), url('${item.stream_icon || item.cover}')`;
+        document.getElementById('details-screen').style.backgroundImage = `linear-gradient(to right, rgba(10,10,10,1) 40%, rgba(10,10,10,0.85) 100%), url('${item.stream_icon || item.cover}')`;
 
         let action = type === 'movie' ? `get_vod_info&vod_id=${id}` : `get_series_info&series_id=${id}`;
         try {
@@ -517,12 +586,9 @@
                 document.getElementById('series-episodes-col').classList.add('hidden'); 
             } else if (type === 'series') {
                 actionsHtml = favBtnHtml;
-                
-                // إضافة زر السحر السحابي: "متابعة المشاهدة" للمسلسلات إذا توفرت بيانات حلقة سابقة
                 if (activeStreamData.current_episode_id && activeStreamData.resume_time > 0) {
                     actionsHtml = `<button class="action-btn focusable" style="background:var(--primary); color:white;" onclick="resumeSeriesPlayback()">▶ متابعة المشاهدة (حلقة ${activeStreamData.current_episode_num})</button>` + actionsHtml;
                 }
-                
                 if (data.episodes) {
                     actionsHtml += `<select id="season-selector" class="seasons-select focusable"></select>`;
                 }
@@ -542,7 +608,6 @@
 
     function resumeSeriesPlayback() {
         if (activeStreamData && activeStreamData.current_episode_id) {
-            // توجيه المشغل الفعلي مباشرة لتشغيل الحلقة الأخيرة بنفس الامتداد المتناسق
             playStream(activeStreamData.current_episode_id, 'series', activeStreamData.current_episode_ext || 'mkv');
         }
     }
@@ -556,16 +621,16 @@
     async function toggleFavorite() {
         const { data } = await supabaseClient.from('favorites').select('id').eq('username', iptv.user).eq('profile_name', currentProfile).eq('item_id', String(activeStreamData.id));
         const favBtn = document.getElementById('fav-btn');
-        
         if (data && data.length > 0) {
             await supabaseClient.from('favorites').delete().eq('id', data[0].id);
             favBtn.innerText = '❤ أضف للمفضلة'; favBtn.style.background = 'rgba(40,40,40,0.8)';
             showToast('تم الحذف من المفضلات');
         } else {
-            const { error } = await supabaseClient.from('favorites').insert([{
+            await supabaseClient.from('favorites').insert([{
                 username: iptv.user, profile_name: currentProfile, item_id: String(activeStreamData.id), item_type: activeStreamData.type, item_data: activeStreamData
             }]);
-            if(!error) { favBtn.innerText = '❌ إزالة من المفضلة'; favBtn.style.background = 'var(--primary)'; showToast('تم الحفظ بالمفضلة'); }
+            favBtn.innerText = '❌ إزالة من المفضلة'; favBtn.style.background = 'var(--primary)';
+            showToast('تم الحفظ بالمفضلة');
         }
     }
 
@@ -577,48 +642,36 @@
         if(seasons.length > 0) renderEpisodes(episodesObj[seasons[0]]);
     }
 
-    // --- هندسة الحلقات المصححة (تمنع تشويه كائن المسلسل الأصلي) ---
     function renderEpisodes(epsList) {
         const container = document.getElementById('episodes-container'); container.innerHTML = '';
         epsList.forEach(ep => {
-            const div = document.createElement('button'); div.className = 'ep-card focusable'; div.tabIndex = 0;
+            const div = document.createElement('button'); div.className = 'ep-card focusable';
             div.innerHTML = `<span>الحلقة ${ep.episode_num || '-'}</span> <span>▶</span>`;
-            
             div.addEventListener('mouseenter', (e) => e.target.focus());
-            div.addEventListener('focus', (e) => e.target.scrollIntoView({ behavior: "smooth", block: "center" }));
-            
             div.onclick = () => {
-                // بدلاً من مسح الكائن؛ نقوم فقط بإلحاق سمات الحلقة الشغالة حالياً بالمسلسل الرئيسي
                 activeStreamData.current_episode_id = String(ep.id);
                 activeStreamData.current_episode_num = ep.episode_num;
                 activeStreamData.current_episode_ext = ep.container_extension || 'mkv';
-                
-                // تصفير تقدم المشاهدة مؤقتاً للحلقة الجديدة إلا إذا كانت نفس الحلقة السابقة
                 activeStreamData.resume_time = 0; 
-                
                 playStream(ep.id, 'series', ep.container_extension || 'mkv');
             }; 
             container.appendChild(div);
         });
     }
 
-    // --- مشغل الميديا الذكي والقفز للوقت المحفوظ القياسي ---
     const video = document.getElementById('tv-video');
     function playStream(id, type, ext) {
         let url = type === 'live' ? `${iptv.domain}/${iptv.user}/${iptv.pass}/${id}` : `${iptv.domain}/${type === 'movie' ? 'movie' : 'series'}/${iptv.user}/${iptv.pass}/${id}.${ext}`;
-        
         history.pushState({view: 'player'}, 'Player', '#player');
         document.getElementById('details-screen').classList.add('hidden');
         document.getElementById('main-screen').classList.add('hidden');
         document.getElementById('player-container').classList.remove('hidden');
         
         isPlaying = true; video.src = url; video.load(); 
-        
         video.onloadedmetadata = () => {
-            // القفز التلقائي الآمن فقط للفيلم المطابق أو حلقة المسلسل النشطة سحابياً لمنع تصفير التوقيت
             if (activeStreamData && activeStreamData.resume_time > 0) {
                 video.currentTime = activeStreamData.resume_time;
-                showToast(`تم استئناف العرض بنجاح من آخر توقف.`);
+                showToast(`تم استئناف العرض بنجاح`);
             }
         };
         video.play().catch(e => console.log(e));
@@ -632,20 +685,16 @@
 
     async function saveActivity(time) {
         try {
-            // إرسال كائن المسلسل المكتمل والنظيف دون تغيير سمة الاسم لتظل واجهة المتابعة تقرأ اسم المسلسل بكفاءة
             await supabaseClient.from('user_activity').upsert({
                 username: iptv.user, profile_name: currentProfile, movie_id: String(activeStreamData.id), 
-                item_type: activeStreamData.type, resume_time: time, item_data: activeStreamData,
-                updated_at: new Date().toISOString()
+                item_type: activeStreamData.type, resume_time: time, item_data: activeStreamData, updated_at: new Date().toISOString()
             }, { onConflict: 'username,profile_name,movie_id' });
         } catch(e) {}
     }
 
-    // --- محرك التنقل الفضائي القياسي لريموت التلفاز والعجلة الماجيك ---
+    // --- المحرك الفضائي للريموت ---
     function getStaticLayoutRect(el) {
-        let x = 0, y = 0;
-        let width = el.offsetWidth; let height = el.offsetHeight;
-        let currentEl = el;
+        let x = 0, y = 0; let width = el.offsetWidth; let height = el.offsetHeight; let currentEl = el;
         while(currentEl) { x += currentEl.offsetLeft; y += currentEl.offsetTop; currentEl = currentEl.offsetParent; }
         return { left: x, top: y, right: x + width, bottom: y + height, width, height };
     }
@@ -675,15 +724,10 @@
                 let r = getStaticLayoutRect(f);
                 let dx = 0, dy = 0, dist = Infinity;
 
-                if(e.keyCode === 37 && r.right <= rect.left + 5) { 
-                    dx = rect.left - r.right; dy = Math.abs((rect.top+rect.bottom)/2 - (r.top+r.bottom)/2); dist = dx + dy*4;
-                } else if(e.keyCode === 39 && r.left >= rect.right - 5) { 
-                    dx = r.left - rect.right; dy = Math.abs((rect.top+rect.bottom)/2 - (r.top+r.bottom)/2); dist = dx + dy*4;
-                } else if(e.keyCode === 38 && r.bottom <= rect.top + 5) { 
-                    dy = rect.top - r.bottom; dx = Math.abs((rect.left+rect.right)/2 - (r.left+r.right)/2); dist = dy + dx*4;
-                } else if(e.keyCode === 40 && r.top >= rect.bottom - 5) { 
-                    dy = r.top - rect.bottom; dx = Math.abs((rect.left+rect.right)/2 - (r.left+r.right)/2); dist = dy + dx*4;
-                }
+                if(e.keyCode === 37 && r.right <= rect.left + 5) { dx = rect.left - r.right; dy = Math.abs((rect.top+rect.bottom)/2 - (r.top+r.bottom)/2); dist = dx + dy*4; }
+                else if(e.keyCode === 39 && r.left >= rect.right - 5) { dx = r.left - rect.right; dy = Math.abs((rect.top+rect.bottom)/2 - (r.top+r.bottom)/2); dist = dx + dy*4; }
+                else if(e.keyCode === 38 && r.bottom <= rect.top + 5) { dy = rect.top - r.bottom; dx = Math.abs((rect.left+rect.right)/2 - (r.left+r.right)/2); dist = dy + dx*4; }
+                else if(e.keyCode === 40 && r.top >= rect.bottom - 5) { dy = r.top - rect.bottom; dx = Math.abs((rect.left+rect.right)/2 - (r.left+r.right)/2); dist = dy + dx*4; }
                 if(dist < minDistance) { minDistance = dist; bestMatch = f; }
             });
 
