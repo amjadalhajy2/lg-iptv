@@ -7,18 +7,21 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
 
     - name: Setup Node.js
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v3
       with:
-        node-version: '18'
+        node-version: '16'
 
     - name: Install webOS CLI
       run: npm install -g @webos-tools/cli
+
+    - name: Download Dummy Icon
+      run: wget -O icon.png https://via.placeholder.com/160x160.png?text=Smart+IPTV
 
     - name: Package App
       run: ares-package .
