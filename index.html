@@ -406,7 +406,7 @@
             await fetchCategories('get_live_categories', 'live');
         } else if (type === 'favorites') {
             document.getElementById('categories-container').innerHTML = '';
-            await loadSupabaseRows('favorites', `مفضلاتي الشاملة`, null);
+            await loadSupabaseRows('favorites', `مفضلاتي`, null);
         }
         autoFocusFirstElement();
     }
@@ -449,7 +449,7 @@
     }
 
     async function loadCategoryItems(catId, streamAction, itemType) {
-        document.getElementById('grid-container').innerHTML = '<h2 style="padding:4vw; grid-column: 1 / -1; text-align:center;">جاري تحميل المكتبة...</h2>';
+        document.getElementById('grid-container').innerHTML = '<h2 style="padding:4vw; grid-column: 1 / -1; text-align:center;">جاري التحميل ...</h2>';
         document.getElementById('load-more-container').innerHTML = '';
         try {
             const res = await fetch(`${iptv.domain}/player_api.php?username=${iptv.user}&password=${iptv.pass}&action=${streamAction}&category_id=${catId}`);
