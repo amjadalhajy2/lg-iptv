@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1920, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
-    <title>AMJAD TV</title>
+    <title>Stream IPTV - Premium Ultimate TV UI</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --bg: #0a0a0a; --primary: #e50914; --text: #ffffff; --card-w: 16vw; --card-h: 24vw; }
@@ -28,7 +28,7 @@
         }
         #toast.show { visibility: visible; opacity: 1; }
 
-        /* الشريط العلوي شفاف بالكامل */
+        /* الشريط العلوي الشفاف */
         header {
             position: fixed; top: 0; left: 0; width: 100%; height: 14vh; padding: 0 4vw;
             background: transparent;
@@ -49,10 +49,8 @@
         .search-box input:focus { background: rgba(0,0,0,0.9); width: 24vw; border-color: var(--primary); box-shadow: 0 0 1.5vw var(--primary); }
         .user-info { display: flex; align-items: center; gap: 1vw; font-size: 1.3vw; font-weight: bold; }
 
-        /* منطقة المحتوى العام */
         #main-content { padding-top: 16vh; padding-bottom: 10vh; }
         
-        /* حل تداخل العناوين بـ Z-index */
         .row-container { margin-bottom: 2vh; position: relative; }
         .row-title { position: relative; z-index: 20; font-size: 1.8vw; font-weight: bold; margin: 0 4vw 0vh 0; opacity: 1; text-shadow: 2px 2px 5px black; pointer-events: none; }
         .row-inner { display: flex; gap: 1.5vw; overflow-x: auto; padding: 3vh 4vw; margin-top: -1.5vh; margin-bottom: -1.5vh; scroll-behavior: smooth; }
@@ -73,7 +71,6 @@
         .scroll-btn.right { right: 1vw; }
         .scroll-btn.left { left: 1vw; }
 
-        /* --- تصميم البطاقات للأفلام والمسلسلات --- */
         .card {
             border-radius: 0.5vw; position: relative; background: #1a1a1a; cursor: pointer; outline: none; 
             transition: transform 0.3s ease, border 0.3s ease; padding: 0; margin: 0; border: 0.25vw solid transparent; display: block;
@@ -86,7 +83,6 @@
         }
         .card img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 2; transition: opacity 0.3s; }
         
-        /* التعتيم وإظهار البيانات للبطاقات */
         .card-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 4; 
             display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; 
@@ -100,7 +96,6 @@
         .overlay-meta-fetched { font-size: 1.1vw; color: #ccc; font-weight: 600; line-height: 1.6; }
         .overlay-meta-fetched span { display: block; margin-bottom: 0.5vh; }
 
-        /* --- تصميم بطاقات قنوات الـ Live (مربع بخلفية سوداء) --- */
         .live-card { width: 100%; height: auto; background: transparent; border: none; outline: none; cursor: pointer; display: block; text-align: center; transition: 0.3s; }
         .row-inner .live-card { width: 12vw; flex: 0 0 auto; }
         
@@ -122,7 +117,6 @@
         .load-more-btn { background: rgba(40,40,40,0.9); color: white; padding: 2vh 4vw; font-size: 1.5vw; border-radius: 1vw; border: 0.1vw solid rgba(255,255,255,0.2); cursor: pointer; transition: 0.3s; font-weight: bold; outline: none; }
         .load-more-btn:focus, .load-more-btn:hover { background: var(--primary); border-color: white; transform: scale(1.05); }
 
-        /* --- شاشة التفاصيل --- */
         #details-screen { padding: 6vh 4vw; box-sizing: border-box; background-size: cover; background-position: center; box-shadow: inset 0 0 80vw 60vw rgba(0,0,0,0.98); z-index: 200; }
         .details-layout { display: flex; gap: 4vw; height: 88vh; align-items: stretch; }
         
@@ -141,7 +135,6 @@
         .details-meta { font-size: 1.3vw; color: #ccc; font-weight: 600; display: flex; gap: 1.5vw; text-shadow: 1px 1px 3px black; background: rgba(255,255,255,0.05); padding: 1vh 1.5vw; border-radius: 0.5vw; width: fit-content; }
         .details-desc { font-size: 1.3vw; line-height: 1.8; opacity: 0.85; text-shadow: 1px 1px 3px black; max-width: 95%; margin: 0; }
         
-        /* حل مشكلة القص لقائمة الحلقات */
         .details-episodes-col { flex: 0 0 26vw; height: 100%; overflow-y: auto; overflow-x: visible; padding: 1vh 2vw 5vh 2vw; margin-left: -2vw; scrollbar-width: none; }
         .episodes-list-vertical { display: flex; flex-direction: column; gap: 1.5vh; }
         .ep-card { position: relative; background: rgba(35,35,35,0.85); padding: 2vh; border-radius: 0.5vw; cursor: pointer; outline: none; transition: 0.3s; display: flex; justify-content: space-between; align-items: center; border: 0.1vw solid transparent; color: white; font-size: 1.2vw; overflow: hidden; }
@@ -149,28 +142,16 @@
         .ep-progress { position: absolute; bottom: 0; left: 0; width: 100%; height: 0.6vh; background: rgba(0,0,0,0.4); }
         .ep-progress-fill { height: 100%; background: var(--primary); }
 
-        /* --- تصميم شاشة تسجيل الدخول الجديد (Premium Login) --- */
-        #login-screen { 
-            display: flex; align-items: center; justify-content: center; 
-            background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%); z-index: 500;
-        }
-        .login-wrapper {
-            background: rgba(0, 0, 0, 0.7); padding: 4vw 6vw; border-radius: 1vw; box-shadow: 0 2vh 6vh rgba(0,0,0,0.9);
-            text-align: center; border: 0.1vw solid rgba(255,255,255,0.05); backdrop-filter: blur(20px); max-width: 45vw; width: 100%;
-        }
+        /* --- شاشة تسجيل الدخول --- */
+        #login-screen { display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%); z-index: 500; }
+        .login-wrapper { background: rgba(0, 0, 0, 0.7); padding: 4vw 6vw; border-radius: 1vw; box-shadow: 0 2vh 6vh rgba(0,0,0,0.9); text-align: center; border: 0.1vw solid rgba(255,255,255,0.05); backdrop-filter: blur(20px); max-width: 45vw; width: 100%; }
         .login-logo { color: var(--primary); font-size: 4vw; font-weight: 900; letter-spacing: 4px; margin: 0 0 1vh 0; text-shadow: 0 0 2vw rgba(229,9,20,0.4); }
         .login-title { font-size: 2vw; color: white; margin: 0 0 1vh 0; }
         .login-subtitle { font-size: 1.2vw; color: #aaa; margin: 0 0 4vh 0; }
         .login-form { display: flex; flex-direction: column; gap: 2.5vh; }
-        .login-form input {
-            background: rgba(255,255,255,0.08); border: 0.1vw solid rgba(255,255,255,0.15); color: white;
-            padding: 1.5vw; border-radius: 0.5vw; font-size: 1.3vw; outline: none; transition: 0.3s; font-family: inherit;
-        }
+        .login-form input { background: rgba(255,255,255,0.08); border: 0.1vw solid rgba(255,255,255,0.15); color: white; padding: 1.5vw; border-radius: 0.5vw; font-size: 1.3vw; outline: none; transition: 0.3s; font-family: inherit; }
         .login-form input:focus { background: rgba(0,0,0,0.8); border-color: var(--primary); box-shadow: 0 0 1.5vw rgba(229, 9, 20, 0.4); transform: scale(1.02); }
-        .login-btn {
-            background: var(--primary); color: white; border: none; padding: 1.5vw; font-size: 1.5vw;
-            border-radius: 0.5vw; cursor: pointer; font-weight: bold; transition: 0.3s; margin-top: 1vh; outline: none;
-        }
+        .login-btn { background: var(--primary); color: white; border: none; padding: 1.5vw; font-size: 1.5vw; border-radius: 0.5vw; cursor: pointer; font-weight: bold; transition: 0.3s; margin-top: 1vh; outline: none; }
         .login-btn:focus, .login-btn:hover { transform: scale(1.05); box-shadow: 0 1vh 3vh rgba(229, 9, 20, 0.6); border: 0.15vw solid white; }
 
         /* شاشة الحسابات */
@@ -193,14 +174,14 @@
 
     <div id="login-screen" class="scrollable-screen">
         <div class="login-wrapper">
-            <h1 class="login-logo">AMJAD TV</h1>
+            <h1 class="login-logo">STREAM</h1>
             <h2 class="login-title">تسجيل الدخول</h2>
-            <p class="login-subtitle">الرجاء إدخال بيانات اشتراك الـ IPTV الخاص بك</p>
+            <p class="login-subtitle">الرجاء إدخال بيانات اشتراك الـ IPTV الخاص بك للبدء</p>
             <div class="login-form">
                 <input type="text" id="iptv-domain" class="focusable" tabindex="0" placeholder="رابط السيرفر (http://...)">
                 <input type="text" id="iptv-user" class="focusable" tabindex="0" placeholder="اسم المستخدم">
                 <input type="password" id="iptv-pass" class="focusable" tabindex="0" placeholder="كلمة المرور">
-                <button class="login-btn focusable" tabindex="0" onclick="login()">دخول</button>
+                <button id="login-btn" class="login-btn focusable" tabindex="0" onclick="login()">دخول</button>
             </div>
         </div>
     </div>
@@ -218,7 +199,6 @@
     <div id="profiles-screen" class="scrollable-screen hidden">
         <h1 style="font-size: 3.5vw; text-shadow: 2px 2px 5px black;">من يشاهد الآن؟</h1>
         <div class="profiles-container" id="profiles-list"></div>
-        
         <div style="display: flex; gap: 2vw; margin-top: 6vh;">
             <button class="action-btn focusable" tabindex="0" onclick="openAddProfileModal()">+ إضافة مستخدم</button>
             <button class="action-btn fav focusable" tabindex="0" onclick="logout()">تسجيل الخروج</button>
@@ -234,7 +214,7 @@
                 <button class="nav-item focusable" tabindex="0" onclick="loadPage('live')">القنوات</button>
                 <button class="nav-item focusable" tabindex="0" onclick="loadPage('favorites')">مفضلاتي</button>
                 <div class="search-box">
-                    <input type="text" id="search-input" class="focusable" tabindex="0" placeholder="🔍 بحث ..." onkeyup="handleSearch()">
+                    <input type="text" id="search-input" class="focusable" tabindex="0" placeholder="🔍 بحث عالمي..." onkeyup="handleSearch()">
                 </div>
             </div>
             <div class="user-info">
@@ -299,7 +279,6 @@
         setTimeout(() => t.classList.remove('show'), 4000);
     }
 
-    // دالة التركيز الآمنة لمنع سحب المؤشر من شريط البحث أثناء استخدام الماجيك ريموت
     function safeFocus(el) {
         if(document.activeElement.tagName !== 'INPUT') {
             el.focus();
@@ -325,21 +304,44 @@
         }
     };
 
-    function login() {
-        iptv.domain = document.getElementById('iptv-domain').value.trim();
-        iptv.user = document.getElementById('iptv-user').value.trim();
-        iptv.pass = document.getElementById('iptv-pass').value.trim();
-        if(!iptv.user || !iptv.domain || !iptv.pass) {
-            showToast('الرجاء إدخال جميع البيانات');
-            return;
-        }
-        iptv.domain = iptv.domain.endsWith('/') ? iptv.domain.slice(0, -1) : iptv.domain;
+    // التحقق الفعلي من صحة البيانات قبل الدخول
+    async function login() {
+        const d = document.getElementById('iptv-domain').value.trim();
+        const u = document.getElementById('iptv-user').value.trim();
+        const p = document.getElementById('iptv-pass').value.trim();
+        const btn = document.getElementById('login-btn');
+
+        if(!d || !u || !p) { showToast('الرجاء إدخال جميع البيانات'); return; }
         
-        localStorage.setItem('iptv_domain', iptv.domain); localStorage.setItem('iptv_user', iptv.user); localStorage.setItem('iptv_pass', iptv.pass);
-        fetchProfilesFromSupabase();
+        let cleanDomain = d.endsWith('/') ? d.slice(0, -1) : d;
+        
+        btn.innerText = 'جاري التحقق...';
+        btn.disabled = true;
+
+        try {
+            const res = await fetch(`${cleanDomain}/player_api.php?username=${u}&password=${p}`);
+            const data = await res.json();
+
+            if (data && data.user_info && data.user_info.auth === 1) {
+                iptv.domain = cleanDomain; iptv.user = u; iptv.pass = p;
+                localStorage.setItem('iptv_domain', cleanDomain); 
+                localStorage.setItem('iptv_user', u); 
+                localStorage.setItem('iptv_pass', p);
+                
+                showToast('✅ تم الاتصال بنجاح');
+                btn.innerText = 'دخول';
+                btn.disabled = false;
+                fetchProfilesFromSupabase();
+            } else {
+                throw new Error('بيانات الدخول غير صحيحة');
+            }
+        } catch (e) {
+            showToast('❌ فشل الاتصال: تأكد من الرابط أو بيانات الدخول');
+            btn.innerText = 'دخول';
+            btn.disabled = false;
+        }
     }
 
-    // دالة تسجيل الخروج الجديدة
     function logout() {
         localStorage.removeItem('iptv_domain');
         localStorage.removeItem('iptv_user');
@@ -413,7 +415,7 @@
             
             document.getElementById('continue-watching-container').innerHTML = ''; 
             document.getElementById('categories-container').innerHTML = ''; 
-            document.getElementById('grid-container').innerHTML = '<h2 style="padding:5vw; grid-column: 1 / -1; text-align:center;">🔍 جاري البحث ...</h2>';
+            document.getElementById('grid-container').innerHTML = '<h2 style="padding:5vw; grid-column: 1 / -1; text-align:center;">🔍 جاري البحث عالمياً...</h2>';
             document.getElementById('load-more-container').innerHTML = '';
 
             let action = currentTab === 'movies' ? 'get_vod_streams' : (currentTab === 'series' ? 'get_series' : 'get_live_streams');
@@ -452,7 +454,7 @@
             await fetchCategories('get_live_categories', 'live');
         } else if (type === 'favorites') {
             document.getElementById('categories-container').innerHTML = '';
-            await loadSupabaseRows('favorites', `مفضلاتي`, null);
+            await loadSupabaseRows('favorites', `مفضلاتي الشاملة`, null);
         }
         autoFocusFirstElement();
     }
@@ -495,7 +497,7 @@
     }
 
     async function loadCategoryItems(catId, streamAction, itemType) {
-        document.getElementById('grid-container').innerHTML = '<h2 style="padding:4vw; grid-column: 1 / -1; text-align:center;">جاري التحميل ...</h2>';
+        document.getElementById('grid-container').innerHTML = '<h2 style="padding:4vw; grid-column: 1 / -1; text-align:center;">جاري تحميل المكتبة...</h2>';
         document.getElementById('load-more-container').innerHTML = '';
         try {
             const res = await fetch(`${iptv.domain}/player_api.php?username=${iptv.user}&password=${iptv.pass}&action=${streamAction}&category_id=${catId}`);
