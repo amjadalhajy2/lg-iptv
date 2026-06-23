@@ -234,7 +234,7 @@
                 <button class="nav-item focusable" tabindex="0" onclick="loadPage('live')">القنوات</button>
                 <button class="nav-item focusable" tabindex="0" onclick="loadPage('favorites')">مفضلاتي</button>
                 <div class="search-box">
-                    <input type="text" id="search-input" class="focusable" tabindex="0" placeholder="🔍 بحث عالمي..." onkeyup="handleSearch()">
+                    <input type="text" id="search-input" class="focusable" tabindex="0" placeholder="🔍 بحث ..." onkeyup="handleSearch()">
                 </div>
             </div>
             <div class="user-info">
@@ -413,7 +413,7 @@
             
             document.getElementById('continue-watching-container').innerHTML = ''; 
             document.getElementById('categories-container').innerHTML = ''; 
-            document.getElementById('grid-container').innerHTML = '<h2 style="padding:5vw; grid-column: 1 / -1; text-align:center;">🔍 جاري البحث عالمياً...</h2>';
+            document.getElementById('grid-container').innerHTML = '<h2 style="padding:5vw; grid-column: 1 / -1; text-align:center;">🔍 جاري البحث ...</h2>';
             document.getElementById('load-more-container').innerHTML = '';
 
             let action = currentTab === 'movies' ? 'get_vod_streams' : (currentTab === 'series' ? 'get_series' : 'get_live_streams');
