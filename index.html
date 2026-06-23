@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1920, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
-    <title>Stream IPTV - Premium Ultimate TV UI</title>
+    <title>AMJAD STREAM</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --bg: #0a0a0a; --primary: #e50914; --text: #ffffff; --card-w: 16vw; --card-h: 24vw; }
@@ -174,7 +174,7 @@
 
     <div id="login-screen" class="scrollable-screen">
         <div class="login-wrapper">
-            <h1 class="login-logo">STREAM</h1>
+            <h1 class="login-logo">AMJAD STREAM</h1>
             <h2 class="login-title">تسجيل الدخول</h2>
             <p class="login-subtitle">الرجاء إدخال بيانات اشتراك الـ IPTV الخاص بك للبدء</p>
             <div class="login-form">
@@ -214,7 +214,7 @@
                 <button class="nav-item focusable" tabindex="0" onclick="loadPage('live')">القنوات</button>
                 <button class="nav-item focusable" tabindex="0" onclick="loadPage('favorites')">مفضلاتي</button>
                 <div class="search-box">
-                    <input type="text" id="search-input" class="focusable" tabindex="0" placeholder="🔍 بحث عالمي..." onkeyup="handleSearch()">
+                    <input type="text" id="search-input" class="focusable" tabindex="0" placeholder="🔍 بحث ..." onkeyup="handleSearch()">
                 </div>
             </div>
             <div class="user-info">
@@ -415,7 +415,7 @@
             
             document.getElementById('continue-watching-container').innerHTML = ''; 
             document.getElementById('categories-container').innerHTML = ''; 
-            document.getElementById('grid-container').innerHTML = '<h2 style="padding:5vw; grid-column: 1 / -1; text-align:center;">🔍 جاري البحث عالمياً...</h2>';
+            document.getElementById('grid-container').innerHTML = '<h2 style="padding:5vw; grid-column: 1 / -1; text-align:center;">🔍 جاري البحث ...</h2>';
             document.getElementById('load-more-container').innerHTML = '';
 
             let action = currentTab === 'movies' ? 'get_vod_streams' : (currentTab === 'series' ? 'get_series' : 'get_live_streams');
@@ -454,7 +454,7 @@
             await fetchCategories('get_live_categories', 'live');
         } else if (type === 'favorites') {
             document.getElementById('categories-container').innerHTML = '';
-            await loadSupabaseRows('favorites', `مفضلاتي الشاملة`, null);
+            await loadSupabaseRows('favorites', `مفضلاتي`, null);
         }
         autoFocusFirstElement();
     }
@@ -497,7 +497,7 @@
     }
 
     async function loadCategoryItems(catId, streamAction, itemType) {
-        document.getElementById('grid-container').innerHTML = '<h2 style="padding:4vw; grid-column: 1 / -1; text-align:center;">جاري تحميل المكتبة...</h2>';
+        document.getElementById('grid-container').innerHTML = '<h2 style="padding:4vw; grid-column: 1 / -1; text-align:center;">جاري تحميل ...</h2>';
         document.getElementById('load-more-container').innerHTML = '';
         try {
             const res = await fetch(`${iptv.domain}/player_api.php?username=${iptv.user}&password=${iptv.pass}&action=${streamAction}&category_id=${catId}`);
