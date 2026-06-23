@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1920, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
-    <title>AMJAD STREAM</title>
+    <title>Stream IPTV - Premium Ultimate TV UI</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --bg: #0a0a0a; --primary: #e50914; --text: #ffffff; --card-w: 16vw; --card-h: 24vw; }
@@ -28,7 +28,7 @@
         }
         #toast.show { visibility: visible; opacity: 1; }
 
-        /* الشريط العلوي الشفاف */
+        /* الشريط العلوي شفاف بالكامل */
         header {
             position: fixed; top: 0; left: 0; width: 100%; height: 14vh; padding: 0 4vw;
             background: transparent;
@@ -49,6 +49,7 @@
         .search-box input:focus { background: rgba(0,0,0,0.9); width: 24vw; border-color: var(--primary); box-shadow: 0 0 1.5vw var(--primary); }
         .user-info { display: flex; align-items: center; gap: 1vw; font-size: 1.3vw; font-weight: bold; }
 
+        /* منطقة المحتوى العام */
         #main-content { padding-top: 16vh; padding-bottom: 10vh; }
         
         .row-container { margin-bottom: 2vh; position: relative; }
@@ -71,6 +72,7 @@
         .scroll-btn.right { right: 1vw; }
         .scroll-btn.left { left: 1vw; }
 
+        /* البطاقات للأفلام والمسلسلات */
         .card {
             border-radius: 0.5vw; position: relative; background: #1a1a1a; cursor: pointer; outline: none; 
             transition: transform 0.3s ease, border 0.3s ease; padding: 0; margin: 0; border: 0.25vw solid transparent; display: block;
@@ -96,6 +98,7 @@
         .overlay-meta-fetched { font-size: 1.1vw; color: #ccc; font-weight: 600; line-height: 1.6; }
         .overlay-meta-fetched span { display: block; margin-bottom: 0.5vh; }
 
+        /* بطاقات القنوات */
         .live-card { width: 100%; height: auto; background: transparent; border: none; outline: none; cursor: pointer; display: block; text-align: center; transition: 0.3s; }
         .row-inner .live-card { width: 12vw; flex: 0 0 auto; }
         
@@ -117,6 +120,7 @@
         .load-more-btn { background: rgba(40,40,40,0.9); color: white; padding: 2vh 4vw; font-size: 1.5vw; border-radius: 1vw; border: 0.1vw solid rgba(255,255,255,0.2); cursor: pointer; transition: 0.3s; font-weight: bold; outline: none; }
         .load-more-btn:focus, .load-more-btn:hover { background: var(--primary); border-color: white; transform: scale(1.05); }
 
+        /* شاشة التفاصيل */
         #details-screen { padding: 6vh 4vw; box-sizing: border-box; background-size: cover; background-position: center; box-shadow: inset 0 0 80vw 60vw rgba(0,0,0,0.98); z-index: 200; }
         .details-layout { display: flex; gap: 4vw; height: 88vh; align-items: stretch; }
         
@@ -142,7 +146,7 @@
         .ep-progress { position: absolute; bottom: 0; left: 0; width: 100%; height: 0.6vh; background: rgba(0,0,0,0.4); }
         .ep-progress-fill { height: 100%; background: var(--primary); }
 
-        /* --- شاشة تسجيل الدخول --- */
+        /* شاشة تسجيل الدخول */
         #login-screen { display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%); z-index: 500; }
         .login-wrapper { background: rgba(0, 0, 0, 0.7); padding: 4vw 6vw; border-radius: 1vw; box-shadow: 0 2vh 6vh rgba(0,0,0,0.9); text-align: center; border: 0.1vw solid rgba(255,255,255,0.05); backdrop-filter: blur(20px); max-width: 45vw; width: 100%; }
         .login-logo { color: var(--primary); font-size: 4vw; font-weight: 900; letter-spacing: 4px; margin: 0 0 1vh 0; text-shadow: 0 0 2vw rgba(229,9,20,0.4); }
@@ -174,7 +178,7 @@
 
     <div id="login-screen" class="scrollable-screen">
         <div class="login-wrapper">
-            <h1 class="login-logo">AMJAD STREAM</h1>
+            <h1 class="login-logo">STREAM</h1>
             <h2 class="login-title">تسجيل الدخول</h2>
             <p class="login-subtitle">الرجاء إدخال بيانات اشتراك الـ IPTV الخاص بك للبدء</p>
             <div class="login-form">
@@ -207,19 +211,19 @@
 
     <div id="main-screen" class="scrollable-screen hidden">
         <header id="main-header">
-            <div class="logo">AMJAD STREAM</div>
+            <div class="logo">STREAM</div>
             <div class="nav-links">
-                <button class="nav-item active focusable" tabindex="0" onclick="loadPage('movies')">الأفلام</button>
-                <button class="nav-item focusable" tabindex="0" onclick="loadPage('series')">المسلسلات</button>
-                <button class="nav-item focusable" tabindex="0" onclick="loadPage('live')">القنوات</button>
-                <button class="nav-item focusable" tabindex="0" onclick="loadPage('favorites')">مفضلاتي</button>
+                <button class="nav-item active focusable" onclick="loadPage('movies')">الأفلام</button>
+                <button class="nav-item focusable" onclick="loadPage('series')">المسلسلات</button>
+                <button class="nav-item focusable" onclick="loadPage('live')">القنوات</button>
+                <button class="nav-item focusable" onclick="loadPage('favorites')">مفضلاتي</button>
                 <div class="search-box">
-                    <input type="text" id="search-input" class="focusable" tabindex="0" placeholder="🔍 بحث ..." onkeyup="handleSearch()">
+                    <input type="text" id="search-input" class="focusable" placeholder="🔍 بحث عالمي..." onkeyup="handleSearch()">
                 </div>
             </div>
             <div class="user-info">
                 <span id="current-profile-name"></span>
-                <button class="nav-item focusable" tabindex="0" style="font-size: 1.2vw;" onclick="changeProfile()">تبديل</button>
+                <button class="nav-item focusable" style="font-size: 1.2vw;" onclick="changeProfile()">تبديل</button>
             </div>
         </header>
 
@@ -269,6 +273,12 @@
     let searchTimeout = null;
     let focusFetchTimeout = null; 
 
+    // متغيرات الجدولة الشاملة للمسلسلات والتقديم المستمر
+    let flatEpisodes = [];
+    let seekTimer = null;
+    let seekInterval = null;
+    let isLongPress = false;
+
     let currentCategoryItems = [];
     let displayedItemsCount = 0;
     const ITEMS_PER_PAGE = 50;
@@ -304,7 +314,6 @@
         }
     };
 
-    // التحقق الفعلي من صحة البيانات قبل الدخول
     async function login() {
         const d = document.getElementById('iptv-domain').value.trim();
         const u = document.getElementById('iptv-user').value.trim();
@@ -312,40 +321,28 @@
         const btn = document.getElementById('login-btn');
 
         if(!d || !u || !p) { showToast('الرجاء إدخال جميع البيانات'); return; }
-        
         let cleanDomain = d.endsWith('/') ? d.slice(0, -1) : d;
-        
         btn.innerText = 'جاري التحقق...';
         btn.disabled = true;
 
         try {
             const res = await fetch(`${cleanDomain}/player_api.php?username=${u}&password=${p}`);
             const data = await res.json();
-
             if (data && data.user_info && data.user_info.auth === 1) {
                 iptv.domain = cleanDomain; iptv.user = u; iptv.pass = p;
-                localStorage.setItem('iptv_domain', cleanDomain); 
-                localStorage.setItem('iptv_user', u); 
-                localStorage.setItem('iptv_pass', p);
-                
+                localStorage.setItem('iptv_domain', cleanDomain); localStorage.setItem('iptv_user', u); localStorage.setItem('iptv_pass', p);
                 showToast('✅ تم الاتصال بنجاح');
-                btn.innerText = 'دخول';
-                btn.disabled = false;
+                btn.innerText = 'دخول'; btn.disabled = false;
                 fetchProfilesFromSupabase();
-            } else {
-                throw new Error('بيانات الدخول غير صحيحة');
-            }
+            } else { throw new Error('بيانات الدخول غير صحيحة'); }
         } catch (e) {
             showToast('❌ فشل الاتصال: تأكد من الرابط أو بيانات الدخول');
-            btn.innerText = 'دخول';
-            btn.disabled = false;
+            btn.innerText = 'دخول'; btn.disabled = false;
         }
     }
 
     function logout() {
-        localStorage.removeItem('iptv_domain');
-        localStorage.removeItem('iptv_user');
-        localStorage.removeItem('iptv_pass');
+        localStorage.removeItem('iptv_domain'); localStorage.removeItem('iptv_user'); localStorage.removeItem('iptv_pass');
         location.reload();
     }
 
@@ -372,7 +369,7 @@
 
     function renderProfileCard(name) {
         const card = document.createElement('button');
-        card.className = 'profile-card focusable'; card.tabIndex = 0; card.innerText = name; card.onclick = () => selectProfile(name);
+        card.className = 'profile-card focusable'; card.innerText = name; card.onclick = () => selectProfile(name);
         card.addEventListener('mouseenter', (e) => safeFocus(e.target));
         document.getElementById('profiles-list').appendChild(card);
     }
@@ -415,7 +412,7 @@
             
             document.getElementById('continue-watching-container').innerHTML = ''; 
             document.getElementById('categories-container').innerHTML = ''; 
-            document.getElementById('grid-container').innerHTML = '<h2 style="padding:5vw; grid-column: 1 / -1; text-align:center;">🔍 جاري البحث ...</h2>';
+            document.getElementById('grid-container').innerHTML = '<h2 style="padding:5vw; grid-column: 1 / -1; text-align:center;">🔍 جاري البحث عالمياً...</h2>';
             document.getElementById('load-more-container').innerHTML = '';
 
             let action = currentTab === 'movies' ? 'get_vod_streams' : (currentTab === 'series' ? 'get_series' : 'get_live_streams');
@@ -454,7 +451,7 @@
             await fetchCategories('get_live_categories', 'live');
         } else if (type === 'favorites') {
             document.getElementById('categories-container').innerHTML = '';
-            await loadSupabaseRows('favorites', `مفضلاتي`, null);
+            await loadSupabaseRows('favorites', `مفضلاتي الشاملة`, null);
         }
         autoFocusFirstElement();
     }
@@ -497,7 +494,7 @@
     }
 
     async function loadCategoryItems(catId, streamAction, itemType) {
-        document.getElementById('grid-container').innerHTML = '<h2 style="padding:4vw; grid-column: 1 / -1; text-align:center;">جاري تحميل ...</h2>';
+        document.getElementById('grid-container').innerHTML = '<h2 style="padding:4vw; grid-column: 1 / -1; text-align:center;">جاري تحميل المكتبة...</h2>';
         document.getElementById('load-more-container').innerHTML = '';
         try {
             const res = await fetch(`${iptv.domain}/player_api.php?username=${iptv.user}&password=${iptv.pass}&action=${streamAction}&category_id=${catId}`);
@@ -533,11 +530,8 @@
                 <img src="${imgUrl}" style="opacity:0;" onload="this.previousElementSibling.style.display='none'; this.style.opacity=1;" onerror="this.previousElementSibling.style.display='flex'; this.style.opacity=0;">
                 <div class="card-overlay">
                     <div class="overlay-title">${title}</div>
-                    <div class="overlay-meta-fetched">
-                        ${year ? `<span>📅 ${year}</span>` : ''}
-                        ${rating ? `<span>${rating}</span>` : ''}
-                        <div class="dynamic-meta"></div>
-                    </div>
+                    <div class="overlay-rating">${rating}</div>
+                    <div class="overlay-meta-fetched"></div>
                 </div>
                 ${progressHtml}
             `;
@@ -574,7 +568,6 @@
                     let html = '';
                     if(genre) html += `<span>🎬 ${genre}</span>`;
                     if(durationOrEps) html += `<span>⏱ ${durationOrEps}</span>`;
-                    
                     dynamicMeta.innerHTML = html; card.dataset.fetched = "true";
                 }).catch(() => { card.dataset.fetching = ""; });
             }
@@ -596,8 +589,7 @@
         nextBatch.forEach(item => {
             const card = document.createElement('button');
             card.className = type === 'live' ? 'live-card focusable' : 'card focusable';
-            card.tabIndex = 0;
-            card.setAttribute('data-title', (item.name || item.title || '').toLowerCase());
+            card.tabIndex = 0; card.setAttribute('data-title', (item.name || item.title || '').toLowerCase());
             
             card.innerHTML = createCardHtml(item, type);
             attachHoverEvents(card, item, type);
@@ -606,9 +598,7 @@
                 if (type === 'live') {
                     activeStreamData = { id: item.stream_id || item.id, type: 'live', name: item.name };
                     playStream(activeStreamData.id, 'live', '');
-                } else {
-                    openDetails(item, type);
-                }
+                } else { openDetails(item, type); }
             };
             container.appendChild(card);
         });
@@ -618,14 +608,6 @@
         if (displayedItemsCount < currentCategoryItems.length) {
             loadMoreContainer.innerHTML = `<button class="load-more-btn focusable" tabindex="0" onclick="loadMoreItems('${type}')">تحميل 50 عنصر إضافي ↓</button>`;
         } else { loadMoreContainer.innerHTML = ''; }
-    }
-
-    function loadMoreItems(type) {
-        renderGridItems(type, true);
-        setTimeout(() => {
-            const cards = document.querySelectorAll('#grid-container .focusable');
-            if(cards.length > displayedItemsCount - ITEMS_PER_PAGE) cards[displayedItemsCount - ITEMS_PER_PAGE].focus();
-        }, 100);
     }
 
     async function loadSupabaseRows(tableName, rowTitle, filterType) {
@@ -656,8 +638,7 @@
                     const isLive = row.item_type === 'live';
                     const card = document.createElement('button');
                     card.className = isLive ? 'live-card focusable' : 'card focusable';
-                    card.tabIndex = 0;
-                    card.setAttribute('data-title', (obj.name || obj.title || '').toLowerCase());
+                    card.tabIndex = 0; card.setAttribute('data-title', (obj.name || obj.title || '').toLowerCase());
                     
                     card.innerHTML = createCardHtml(obj, row.item_type, tableName === 'user_activity' ? row.resume_time : 0);
                     attachHoverEvents(card, obj, row.item_type);
@@ -720,12 +701,11 @@
             document.getElementById('detail-meta').innerHTML = `<span>سنة الإصدار: ${year}</span> | <span>النوع: ${genre}</span> | <span>المدة/العرض: ${durationOrSeasons}</span>`;
 
             let actionsHtml = '';
-            const favBtnHtml = `<button class="action-btn fav focusable" tabindex="0" id="fav-btn" onclick="toggleFavorite()">❤ أضف للمفضلة</button>`;
+            const favBtnHtml = `<button class="action-btn fav focusable" id="fav-btn" onclick="toggleFavorite()">❤ أضف للمفضلة</button>`;
 
             if (type === 'movie') {
-                actionsHtml = `<button class="action-btn focusable" tabindex="0" onclick="playStream('${id}', 'movie', '${item.container_extension || 'mkv'}')">▶ تشغيل الفيلم</button>` + favBtnHtml;
+                actionsHtml = `<button class="action-btn focusable" onclick="playStream('${id}', 'movie', '${item.container_extension || 'mkv'}')">▶ تشغيل الفيلم</button>` + favBtnHtml;
                 document.getElementById('series-episodes-col').classList.add('hidden'); 
-                
                 if (activeStreamData.resume_time > 0) {
                     const prog = Math.min((activeStreamData.resume_time / 7200) * 100, 100);
                     document.getElementById('detail-progress-container').classList.remove('hidden');
@@ -734,10 +714,18 @@
             } else if (type === 'series') {
                 actionsHtml = favBtnHtml;
                 if (activeStreamData.current_episode_id && activeStreamData.resume_time > 0) {
-                    actionsHtml = `<button class="action-btn focusable" tabindex="0" style="background:var(--primary); color:white;" onclick="resumeSeriesPlayback()">▶ متابعة المشاهدة (حلقة ${activeStreamData.current_episode_num})</button>` + actionsHtml;
+                    actionsHtml = `<button class="action-btn focusable" style="background:var(--primary); color:white;" onclick="resumeSeriesPlayback()">▶ متابعة المشاهدة (حلقة ${activeStreamData.current_episode_num})</button>` + actionsHtml;
                 }
-                if (data.episodes) { actionsHtml += `<select id="season-selector" class="seasons-select focusable" tabindex="0"></select>`; }
+                if (data.episodes) { actionsHtml += `<select id="season-selector" class="seasons-select focusable"></select>`; }
                 document.getElementById('series-episodes-col').classList.remove('hidden'); 
+
+                // مصفوفة مجدولة ومسطحة لجميع الحلقات عابرة للمواسم بدقة زمنية مطلقة لضمان دقة العمل والتشغيل
+                flatEpisodes = [];
+                let sortedSeasons = Object.keys(data.episodes).sort((a, b) => Number(a) - Number(b));
+                sortedSeasons.forEach(s => {
+                    let eps = data.episodes[s].sort((a, b) => Number(a.episode_num) - Number(b.episode_num));
+                    flatEpisodes = flatEpisodes.concat(eps);
+                });
             }
             
             document.getElementById('detail-actions').innerHTML = actionsHtml;
@@ -745,7 +733,7 @@
             autoFocusFirstElement();
             if (type === 'series' && data.episodes) renderSeasons(data.episodes);
         } catch (e) {
-            document.getElementById('detail-actions').innerHTML = '<button class="action-btn focusable" tabindex="0" onclick="history.back()">رجوع</button>';
+            document.getElementById('detail-actions').innerHTML = '<button class="action-btn focusable" onclick="history.back()">رجوع</button>';
             autoFocusFirstElement();
         }
     }
@@ -810,6 +798,11 @@
     const video = document.getElementById('tv-video');
     function playStream(id, type, ext) {
         let url = type === 'live' ? `${iptv.domain}/${iptv.user}/${iptv.pass}/${id}` : `${iptv.domain}/${type === 'movie' ? 'movie' : 'series'}/${iptv.user}/${iptv.pass}/${id}.${ext}`;
+        
+        // مسح أي أزرار سابقة متبقية من حلقات أخرى لمنع تشوهات الشاشة
+        const oldBtn = document.getElementById('next-episode-btn');
+        if (oldBtn) oldBtn.remove();
+
         history.pushState({view: 'player'}, 'Player', '#player');
         document.getElementById('details-screen').classList.add('hidden');
         document.getElementById('main-screen').classList.add('hidden');
@@ -825,11 +818,70 @@
         video.play().catch(e => console.log(e));
     }
 
+    // محرك الفحص والتشغيل للملف الملعوب والمزامنة وإظهار زر الحلقة القادمة قبل النهاية بـ 3 دقائق
     video.addEventListener('timeupdate', () => {
-        if(isPlaying && activeStreamData && activeStreamData.type !== 'live' && Math.floor(video.currentTime) > 0 && Math.floor(video.currentTime) % 15 === 0) { 
+        if (!isPlaying || !activeStreamData) return;
+
+        // 1. مزامنة الثواني دورياً كل 15 ثانية بسوبابيس
+        if (activeStreamData.type !== 'live' && Math.floor(video.currentTime) > 0 && Math.floor(video.currentTime) % 15 === 0) {
             saveActivity(Math.floor(video.currentTime));
         }
+
+        // 2. مراقبة الـ 3 دقائق المتبقية للمسلسلات لإظهار زر القفز "الحلقة القادمة"
+        if (activeStreamData.type === 'series' && video.duration) {
+            let timeLeft = video.duration - video.currentTime;
+            let currentEpIndex = flatEpisodes.findIndex(e => String(e.id) === String(activeStreamData.current_episode_id));
+            let hasNextEp = currentEpIndex !== -1 && currentEpIndex < flatEpisodes.length - 1;
+
+            let nextEpBtn = document.getElementById('next-episode-btn');
+            if (timeLeft <= 180 && timeLeft > 0 && hasNextEp) {
+                if (!nextEpBtn) {
+                    nextEpBtn = document.createElement('button');
+                    nextEpBtn.id = 'next-episode-btn';
+                    nextEpBtn.className = 'focusable';
+                    nextEpBtn.tabIndex = 0;
+                    nextEpBtn.innerText = 'الحلقة القادمة ◀';
+                    nextEpBtn.style.cssText = "position: fixed; bottom: 8vh; right: 4vw; background: var(--primary); color: white; border: 0.2vw solid transparent; padding: 1.5vh 3vw; font-size: 1.4vw; font-weight: bold; border-radius: 0.5vw; z-index: 10000; box-shadow: 0 1vh 3vh rgba(0,0,0,0.8); cursor: pointer; outline: none; transition: 0.3s;";
+                    
+                    nextEpBtn.onclick = () => { nextEpBtn.remove(); playNextEpisode(); };
+                    nextEpBtn.addEventListener('focus', () => { nextEpBtn.style.borderColor = 'white'; nextEpBtn.style.transform = 'scale(1.05)'; });
+                    nextEpBtn.addEventListener('blur', () => { nextEpBtn.style.borderColor = 'transparent'; nextEpBtn.style.transform = 'scale(1)'; });
+                    
+                    document.getElementById('player-container').appendChild(nextEpBtn);
+                }
+            } else {
+                if (nextEpBtn) nextEpBtn.remove();
+            }
+        }
     });
+
+    // الاستماع لانتهاء تشغيل الملف ونقله تلقائياً للحلقة القادمة عابراً للمواسم
+    video.addEventListener('ended', () => {
+        if (isPlaying && activeStreamData && activeStreamData.type === 'series') {
+            const nextEpBtn = document.getElementById('next-episode-btn');
+            if (nextEpBtn) nextEpBtn.remove();
+            playNextEpisode();
+        }
+    });
+
+    function playNextEpisode() {
+        let currentEpIndex = flatEpisodes.findIndex(e => String(e.id) === String(activeStreamData.current_episode_id));
+        if (currentEpIndex !== -1 && currentEpIndex < flatEpisodes.length - 1) {
+            let nextEp = flatEpisodes[currentEpIndex + 1];
+            
+            // تحديث كائن المزامنة السحابي بهوية الحلقة الجديدة والامتداد المتناسق
+            activeStreamData.current_episode_id = String(nextEp.id);
+            activeStreamData.current_episode_num = nextEp.episode_num;
+            activeStreamData.current_episode_ext = nextEp.container_extension || 'mkv';
+            activeStreamData.resume_time = 0; 
+            
+            showToast(`جاري تشغيل الحلقة القادمة: حلقة رقم ${nextEp.episode_num}`);
+            playStream(nextEp.id, 'series', nextEp.container_extension || 'mkv');
+        } else {
+            showToast('وصلت إلى نهاية هذا المسلسل الشامل.');
+            history.back();
+        }
+    }
 
     async function saveActivity(time) {
         try {
@@ -846,11 +898,24 @@
         return { left: x, top: y, right: x + width, bottom: y + height, width, height };
     }
 
+    // --- محرك الاستماع المتقدم والمعدل لأزرار أسهم الريموت (سريع ومطول) ---
     document.addEventListener('keydown', (e) => {
         if (isPlaying) {
-            if(e.keyCode === 37) video.currentTime -= 15;
-            if(e.keyCode === 39) video.currentTime += 15;
-            if(e.keyCode === 13) video.paused ? video.play() : video.pause();
+            // معالجة السهم الأيمن والأيسر في وضع التشغيل (37=يسار، 39=يمين)
+            if (e.keyCode === 37 || e.keyCode === 39) {
+                if (e.repeat) return; // منع تداخل كود المتصفح التكراري الأصلي
+                
+                let direction = (e.keyCode === 39) ? 1 : -1;
+                isLongPress = false;
+
+                // تعيين تايمر ذكي؛ إذا استمر الضغط لأكثر من 400 مل ثانية يتحول تلقائياً لوضع السحب المستمر
+                seekTimer = setTimeout(() => {
+                    isLongPress = true;
+                    seekInterval = setInterval(() => {
+                        video.currentTime += (direction * 5); // تقديم وتأخير مستمر 5 ثوانٍ لكل 150 مل ثانية
+                    }, 150);
+                }, 400);
+            }
             return;
         }
 
@@ -894,6 +959,22 @@
         }
     });
 
+    // دالة إفلات الأزرار لمشغل الفيديو للتمييز بين الضغطة الفردية والضغط المطول
+    document.addEventListener('keyup', (e) => {
+        if (!isPlaying) return;
+        if (e.keyCode === 37 || e.keyCode === 39) {
+            clearTimeout(seekTimer);
+            clearInterval(seekInterval);
+            
+            if (!isLongPress) {
+                // إذا تم الإفلات قبل اكتمال الـ 400 مل ثانية، فهي ضغطة سريعة -> قفز 10 ثوانٍ بدقة كما طلبت
+                if (e.keyCode === 39) video.currentTime += 10;
+                if (e.keyCode === 37) video.currentTime -= 10;
+            }
+            isLongPress = false;
+        }
+    });
+
     document.querySelectorAll('.scrollable-screen').forEach(screen => {
         screen.addEventListener('scroll', () => {
             const header = document.getElementById('main-header');
@@ -905,13 +986,14 @@
     window.addEventListener('popstate', (e) => {
         if (isPlaying) {
             isPlaying = false; video.pause(); video.src = ""; video.load();
+            const nextEpBtn = document.getElementById('next-episode-btn');
+            if (nextEpBtn) nextEpBtn.remove();
+
             document.getElementById('player-container').classList.add('hidden');
             if(activeStreamData && activeStreamData.type === 'live') { 
-                document.getElementById('main-screen').classList.remove('hidden'); 
-                autoFocusFirstElement(); 
+                document.getElementById('main-screen').classList.remove('hidden'); autoFocusFirstElement(); 
             } else { 
-                document.getElementById('details-screen').classList.remove('hidden'); 
-                autoFocusFirstElement(); 
+                document.getElementById('details-screen').classList.remove('hidden'); autoFocusFirstElement(); 
             }
         } else {
             document.getElementById('details-screen').classList.add('hidden');
