@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1920, user-scalable=no, initial-scale=1.0, maximum-scale=1.0">
-    <title>Stream IPTV - Premium Ultimate TV UI</title>
+    <title>AMJAD TV</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --bg: #0a0a0a; --primary: #e50914; --text: #ffffff; --card-w: 16vw; --card-h: 24vw; }
@@ -167,7 +167,7 @@
 
     <div id="login-screen" class="scrollable-screen">
         <div class="login-box" style="text-align: center;">
-            <h1 style="color: var(--primary); font-size: 3vw;">STREAM</h1>
+            <h1 style="color: var(--primary); font-size: 3vw;">AMJAD TV</h1>
             <input type="text" id="iptv-domain" class="focusable" placeholder="رابط السيرفر">
             <input type="text" id="iptv-user" class="focusable" placeholder="اسم المستخدم">
             <input type="password" id="iptv-pass" class="focusable" placeholder="كلمة المرور">
@@ -193,14 +193,14 @@
 
     <div id="main-screen" class="scrollable-screen hidden">
         <header id="main-header">
-            <div class="logo">STREAM</div>
+            <div class="logo">AMJAD TV</div>
             <div class="nav-links">
                 <button class="nav-item active focusable" onclick="loadPage('movies')">الأفلام</button>
                 <button class="nav-item focusable" onclick="loadPage('series')">المسلسلات</button>
                 <button class="nav-item focusable" onclick="loadPage('live')">القنوات</button>
                 <button class="nav-item focusable" onclick="loadPage('favorites')">مفضلاتي</button>
                 <div class="search-box">
-                    <input type="text" id="search-input" class="focusable" placeholder="🔍 بحث عالمي..." onkeyup="handleSearch()">
+                    <input type="text" id="search-input" class="focusable" placeholder="🔍 بحث ..." onkeyup="handleSearch()">
                 </div>
             </div>
             <div class="user-info">
@@ -367,7 +367,7 @@
             
             document.getElementById('continue-watching-container').innerHTML = ''; 
             document.getElementById('categories-container').innerHTML = ''; 
-            document.getElementById('grid-container').innerHTML = '<h2 style="padding:5vw; grid-column: 1 / -1; text-align:center;">🔍 جاري البحث عالمياً...</h2>';
+            document.getElementById('grid-container').innerHTML = '<h2 style="padding:5vw; grid-column: 1 / -1; text-align:center;">🔍 جاري البحث ...</h2>';
             document.getElementById('load-more-container').innerHTML = '';
 
             let action = currentTab === 'movies' ? 'get_vod_streams' : (currentTab === 'series' ? 'get_series' : 'get_live_streams');
