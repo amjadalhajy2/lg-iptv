@@ -213,17 +213,17 @@
         <header id="main-header">
             <div class="logo">STREAM</div>
             <div class="nav-links">
-                <button class="nav-item active focusable" onclick="loadPage('movies')">الأفلام</button>
-                <button class="nav-item focusable" onclick="loadPage('series')">المسلسلات</button>
-                <button class="nav-item focusable" onclick="loadPage('live')">القنوات</button>
-                <button class="nav-item focusable" onclick="loadPage('favorites')">مفضلاتي</button>
+                <button class="nav-item active focusable" tabindex="0" onclick="loadPage('movies')">الأفلام</button>
+                <button class="nav-item focusable" tabindex="0" onclick="loadPage('series')">المسلسلات</button>
+                <button class="nav-item focusable" tabindex="0" onclick="loadPage('live')">القنوات</button>
+                <button class="nav-item focusable" tabindex="0" onclick="loadPage('favorites')">مفضلاتي</button>
                 <div class="search-box">
-                    <input type="text" id="search-input" class="focusable" placeholder="🔍 بحث عالمي..." onkeyup="handleSearch()">
+                    <input type="text" id="search-input" class="focusable" tabindex="0" placeholder="🔍 بحث عالمي..." onkeyup="handleSearch()">
                 </div>
             </div>
             <div class="user-info">
                 <span id="current-profile-name"></span>
-                <button class="nav-item focusable" style="font-size: 1.2vw;" onclick="changeProfile()">تبديل</button>
+                <button class="nav-item focusable" tabindex="0" style="font-size: 1.2vw;" onclick="changeProfile()">تبديل</button>
             </div>
         </header>
 
@@ -273,7 +273,6 @@
     let searchTimeout = null;
     let focusFetchTimeout = null; 
 
-    // متغيرات الجدولة الشاملة للمسلسلات والتقديم المستمر
     let flatEpisodes = [];
     let seekTimer = null;
     let seekInterval = null;
@@ -322,8 +321,7 @@
 
         if(!d || !u || !p) { showToast('الرجاء إدخال جميع البيانات'); return; }
         let cleanDomain = d.endsWith('/') ? d.slice(0, -1) : d;
-        btn.innerText = 'جاري التحقق...';
-        btn.disabled = true;
+        btn.innerText = 'جاري التحقق...'; btn.disabled = true;
 
         try {
             const res = await fetch(`${cleanDomain}/player_api.php?username=${u}&password=${p}`);
@@ -369,7 +367,7 @@
 
     function renderProfileCard(name) {
         const card = document.createElement('button');
-        card.className = 'profile-card focusable'; card.innerText = name; card.onclick = () => selectProfile(name);
+        card.className = 'profile-card focusable'; card.tabIndex = 0; card.innerText = name; card.onclick = () => selectProfile(name);
         card.addEventListener('mouseenter', (e) => safeFocus(e.target));
         document.getElementById('profiles-list').appendChild(card);
     }
@@ -530,8 +528,11 @@
                 <img src="${imgUrl}" style="opacity:0;" onload="this.previousElementSibling.style.display='none'; this.style.opacity=1;" onerror="this.previousElementSibling.style.display='flex'; this.style.opacity=0;">
                 <div class="card-overlay">
                     <div class="overlay-title">${title}</div>
-                    <div class="overlay-rating">${rating}</div>
-                    <div class="overlay-meta-fetched"></div>
+                    <div class="overlay-meta-fetched">
+                        ${year ? `<span>📅 ${year}</span>` : ''}
+                        ${rating ? `<span>${rating}</span>` : ''}
+                        <div class="dynamic-meta"></div>
+                    </div>
                 </div>
                 ${progressHtml}
             `;
@@ -606,8 +607,24 @@
         displayedItemsCount += nextBatch.length;
         const loadMoreContainer = document.getElementById('load-more-container');
         if (displayedItemsCount < currentCategoryItems.length) {
-            loadMoreContainer.innerHTML = `<button class="load-more-btn focusable" tabindex="0" onclick="loadMoreItems('${type}')">تحميل 50 عنصر إضافي ↓</button>`;
+            // حل نهائي: إعادة بناء الزر برمجياً بدلاً من innerHTML
+            loadMoreContainer.innerHTML = '';
+            const loadBtn = document.createElement('button');
+            loadBtn.className = 'load-more-btn focusable';
+            loadBtn.tabIndex = 0;
+            loadBtn.innerText = 'تحميل 50 عنصر إضافي ↓';
+            loadBtn.onclick = () => loadMoreItems(type);
+            loadBtn.addEventListener('mouseenter', (e) => safeFocus(e.target));
+            loadMoreContainer.appendChild(loadBtn);
         } else { loadMoreContainer.innerHTML = ''; }
+    }
+
+    function loadMoreItems(type) {
+        renderGridItems(type, true);
+        setTimeout(() => {
+            const cards = document.querySelectorAll('#grid-container .focusable');
+            if(cards.length > displayedItemsCount - ITEMS_PER_PAGE) cards[displayedItemsCount - ITEMS_PER_PAGE].focus();
+        }, 100);
     }
 
     async function loadSupabaseRows(tableName, rowTitle, filterType) {
@@ -701,11 +718,12 @@
             document.getElementById('detail-meta').innerHTML = `<span>سنة الإصدار: ${year}</span> | <span>النوع: ${genre}</span> | <span>المدة/العرض: ${durationOrSeasons}</span>`;
 
             let actionsHtml = '';
-            const favBtnHtml = `<button class="action-btn fav focusable" id="fav-btn" onclick="toggleFavorite()">❤ أضف للمفضلة</button>`;
+            const favBtnHtml = `<button class="action-btn fav focusable" tabindex="0" id="fav-btn" onclick="toggleFavorite()">❤ أضف للمفضلة</button>`;
 
             if (type === 'movie') {
-                actionsHtml = `<button class="action-btn focusable" onclick="playStream('${id}', 'movie', '${item.container_extension || 'mkv'}')">▶ تشغيل الفيلم</button>` + favBtnHtml;
+                actionsHtml = `<button class="action-btn focusable" tabindex="0" onclick="playStream('${id}', 'movie', '${item.container_extension || 'mkv'}')">▶ تشغيل الفيلم</button>` + favBtnHtml;
                 document.getElementById('series-episodes-col').classList.add('hidden'); 
+                
                 if (activeStreamData.resume_time > 0) {
                     const prog = Math.min((activeStreamData.resume_time / 7200) * 100, 100);
                     document.getElementById('detail-progress-container').classList.remove('hidden');
@@ -714,12 +732,11 @@
             } else if (type === 'series') {
                 actionsHtml = favBtnHtml;
                 if (activeStreamData.current_episode_id && activeStreamData.resume_time > 0) {
-                    actionsHtml = `<button class="action-btn focusable" style="background:var(--primary); color:white;" onclick="resumeSeriesPlayback()">▶ متابعة المشاهدة (حلقة ${activeStreamData.current_episode_num})</button>` + actionsHtml;
+                    actionsHtml = `<button class="action-btn focusable" tabindex="0" style="background:var(--primary); color:white;" onclick="resumeSeriesPlayback()">▶ متابعة المشاهدة (حلقة ${activeStreamData.current_episode_num})</button>` + actionsHtml;
                 }
-                if (data.episodes) { actionsHtml += `<select id="season-selector" class="seasons-select focusable"></select>`; }
+                if (data.episodes) { actionsHtml += `<select id="season-selector" class="seasons-select focusable" tabindex="0"></select>`; }
                 document.getElementById('series-episodes-col').classList.remove('hidden'); 
 
-                // مصفوفة مجدولة ومسطحة لجميع الحلقات عابرة للمواسم بدقة زمنية مطلقة لضمان دقة العمل والتشغيل
                 flatEpisodes = [];
                 let sortedSeasons = Object.keys(data.episodes).sort((a, b) => Number(a) - Number(b));
                 sortedSeasons.forEach(s => {
@@ -733,7 +750,7 @@
             autoFocusFirstElement();
             if (type === 'series' && data.episodes) renderSeasons(data.episodes);
         } catch (e) {
-            document.getElementById('detail-actions').innerHTML = '<button class="action-btn focusable" onclick="history.back()">رجوع</button>';
+            document.getElementById('detail-actions').innerHTML = '<button class="action-btn focusable" tabindex="0" onclick="history.back()">رجوع</button>';
             autoFocusFirstElement();
         }
     }
@@ -799,7 +816,6 @@
     function playStream(id, type, ext) {
         let url = type === 'live' ? `${iptv.domain}/${iptv.user}/${iptv.pass}/${id}` : `${iptv.domain}/${type === 'movie' ? 'movie' : 'series'}/${iptv.user}/${iptv.pass}/${id}.${ext}`;
         
-        // مسح أي أزرار سابقة متبقية من حلقات أخرى لمنع تشوهات الشاشة
         const oldBtn = document.getElementById('next-episode-btn');
         if (oldBtn) oldBtn.remove();
 
@@ -818,16 +834,13 @@
         video.play().catch(e => console.log(e));
     }
 
-    // محرك الفحص والتشغيل للملف الملعوب والمزامنة وإظهار زر الحلقة القادمة قبل النهاية بـ 3 دقائق
     video.addEventListener('timeupdate', () => {
         if (!isPlaying || !activeStreamData) return;
 
-        // 1. مزامنة الثواني دورياً كل 15 ثانية بسوبابيس
         if (activeStreamData.type !== 'live' && Math.floor(video.currentTime) > 0 && Math.floor(video.currentTime) % 15 === 0) {
             saveActivity(Math.floor(video.currentTime));
         }
 
-        // 2. مراقبة الـ 3 دقائق المتبقية للمسلسلات لإظهار زر القفز "الحلقة القادمة"
         if (activeStreamData.type === 'series' && video.duration) {
             let timeLeft = video.duration - video.currentTime;
             let currentEpIndex = flatEpisodes.findIndex(e => String(e.id) === String(activeStreamData.current_episode_id));
@@ -837,9 +850,7 @@
             if (timeLeft <= 180 && timeLeft > 0 && hasNextEp) {
                 if (!nextEpBtn) {
                     nextEpBtn = document.createElement('button');
-                    nextEpBtn.id = 'next-episode-btn';
-                    nextEpBtn.className = 'focusable';
-                    nextEpBtn.tabIndex = 0;
+                    nextEpBtn.id = 'next-episode-btn'; nextEpBtn.className = 'focusable'; nextEpBtn.tabIndex = 0;
                     nextEpBtn.innerText = 'الحلقة القادمة ◀';
                     nextEpBtn.style.cssText = "position: fixed; bottom: 8vh; right: 4vw; background: var(--primary); color: white; border: 0.2vw solid transparent; padding: 1.5vh 3vw; font-size: 1.4vw; font-weight: bold; border-radius: 0.5vw; z-index: 10000; box-shadow: 0 1vh 3vh rgba(0,0,0,0.8); cursor: pointer; outline: none; transition: 0.3s;";
                     
@@ -849,13 +860,10 @@
                     
                     document.getElementById('player-container').appendChild(nextEpBtn);
                 }
-            } else {
-                if (nextEpBtn) nextEpBtn.remove();
-            }
+            } else { if (nextEpBtn) nextEpBtn.remove(); }
         }
     });
 
-    // الاستماع لانتهاء تشغيل الملف ونقله تلقائياً للحلقة القادمة عابراً للمواسم
     video.addEventListener('ended', () => {
         if (isPlaying && activeStreamData && activeStreamData.type === 'series') {
             const nextEpBtn = document.getElementById('next-episode-btn');
@@ -868,19 +876,13 @@
         let currentEpIndex = flatEpisodes.findIndex(e => String(e.id) === String(activeStreamData.current_episode_id));
         if (currentEpIndex !== -1 && currentEpIndex < flatEpisodes.length - 1) {
             let nextEp = flatEpisodes[currentEpIndex + 1];
-            
-            // تحديث كائن المزامنة السحابي بهوية الحلقة الجديدة والامتداد المتناسق
             activeStreamData.current_episode_id = String(nextEp.id);
             activeStreamData.current_episode_num = nextEp.episode_num;
             activeStreamData.current_episode_ext = nextEp.container_extension || 'mkv';
             activeStreamData.resume_time = 0; 
-            
-            showToast(`جاري تشغيل الحلقة القادمة: حلقة رقم ${nextEp.episode_num}`);
+            showToast(`جاري تشغيل حلقة ${nextEp.episode_num}`);
             playStream(nextEp.id, 'series', nextEp.container_extension || 'mkv');
-        } else {
-            showToast('وصلت إلى نهاية هذا المسلسل الشامل.');
-            history.back();
-        }
+        } else { showToast('وصلت إلى نهاية المسلسل.'); history.back(); }
     }
 
     async function saveActivity(time) {
@@ -898,23 +900,25 @@
         return { left: x, top: y, right: x + width, bottom: y + height, width, height };
     }
 
-    // --- محرك الاستماع المتقدم والمعدل لأزرار أسهم الريموت (سريع ومطول) ---
     document.addEventListener('keydown', (e) => {
         if (isPlaying) {
-            // معالجة السهم الأيمن والأيسر في وضع التشغيل (37=يسار، 39=يمين)
             if (e.keyCode === 37 || e.keyCode === 39) {
-                if (e.repeat) return; // منع تداخل كود المتصفح التكراري الأصلي
-                
+                if (e.repeat) return; 
                 let direction = (e.keyCode === 39) ? 1 : -1;
                 isLongPress = false;
-
-                // تعيين تايمر ذكي؛ إذا استمر الضغط لأكثر من 400 مل ثانية يتحول تلقائياً لوضع السحب المستمر
                 seekTimer = setTimeout(() => {
                     isLongPress = true;
-                    seekInterval = setInterval(() => {
-                        video.currentTime += (direction * 5); // تقديم وتأخير مستمر 5 ثوانٍ لكل 150 مل ثانية
-                    }, 150);
+                    seekInterval = setInterval(() => { video.currentTime += (direction * 5); }, 150);
                 }, 400);
+            }
+            return;
+        }
+
+        // تفعيل الضغط الفعلي لزر OK/Enter برمجياً لحل مشكلة متصفحات التلفاز
+        if (e.keyCode === 13) {
+            if(document.activeElement && document.activeElement.tagName !== 'INPUT') {
+                e.preventDefault();
+                document.activeElement.click();
             }
             return;
         }
@@ -959,15 +963,11 @@
         }
     });
 
-    // دالة إفلات الأزرار لمشغل الفيديو للتمييز بين الضغطة الفردية والضغط المطول
     document.addEventListener('keyup', (e) => {
         if (!isPlaying) return;
         if (e.keyCode === 37 || e.keyCode === 39) {
-            clearTimeout(seekTimer);
-            clearInterval(seekInterval);
-            
+            clearTimeout(seekTimer); clearInterval(seekInterval);
             if (!isLongPress) {
-                // إذا تم الإفلات قبل اكتمال الـ 400 مل ثانية، فهي ضغطة سريعة -> قفز 10 ثوانٍ بدقة كما طلبت
                 if (e.keyCode === 39) video.currentTime += 10;
                 if (e.keyCode === 37) video.currentTime -= 10;
             }
