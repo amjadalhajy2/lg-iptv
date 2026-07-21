@@ -227,7 +227,7 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
         .profile-menu button { width: 100%; background: transparent; border: none; padding: 1.5vh 1vw; font-size: 1.2vw; color: white; text-align: center; cursor: pointer; outline: none; transition: 0.3s; }
         .profile-menu button:focus { background: white; color: black; }
 
-        #add-modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.92); z-index: 1000; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(10px); }
+        #add-modal, #logout-confirm-modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.92); z-index: 1000; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(10px); }
         .modal-box { background: #1a1a1a; padding: 4vw; border-radius: 2vw; text-align: center; border: 0.1vw solid rgba(255,255,255,0.1); width: 40vw; }
         .modal-box input { width: 100%; padding: 1.5vw; font-size: 1.5vw; margin: 3vh 0; border-radius: 1vw; border: 0.2vw solid transparent; outline: none; text-align: center; background: rgba(0,0,0,0.5); color: white; transition: 0.3s;}
         .modal-box input:focus { border-color: var(--primary); }
@@ -287,6 +287,16 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
                 <div style="display:flex; gap:1vw;">
                     <button class="action-btn focusable" tabindex="0" onclick="saveNewProfile()">حفظ البيانات</button>
                     <button class="action-btn outline focusable" tabindex="0" onclick="document.getElementById('add-modal').classList.add('hidden')">إلغاء الأمر</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="logout-confirm-modal" class="hidden">
+            <div class="modal-box">
+                <h2 style="color:white; font-size: 2vw; margin: 0 0 3vh 0;">هل أنت متأكد من تسجيل الخروج؟</h2>
+                <div style="display:flex; gap:1vw;">
+                    <button class="action-btn focusable" tabindex="0" onclick="confirmLogout()">تأكيد الخروج</button>
+                    <button class="action-btn outline focusable" tabindex="0" onclick="closeLogoutModal()">إلغاء الأمر</button>
                 </div>
             </div>
         </div>
@@ -583,7 +593,20 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
         }
     }
 
-    function logout() { if(confirm('هل أنت متأكد من تسجيل الخروج؟')) { localStorage.clear(); indexedDB.deleteDatabase('AmjadXtreamDB'); location.reload(); } }
+    function logout() {
+        const modal = document.getElementById('logout-confirm-modal');
+        modal.classList.remove('hidden');
+        setTimeout(() => { const firstBtn = modal.querySelector('.focusable'); if(firstBtn) firstBtn.focus(); }, 100);
+    }
+    function closeLogoutModal() {
+        document.getElementById('logout-confirm-modal').classList.add('hidden');
+        autoFocusFirstElement();
+    }
+    function confirmLogout() {
+        localStorage.clear();
+        indexedDB.deleteDatabase('AmjadXtreamDB');
+        location.reload();
+    }
 
     async function fetchProfilesFromSupabase() {
         document.getElementById('login-screen').classList.add('hidden'); document.getElementById('main-screen').classList.add('hidden'); document.getElementById('profiles-screen').classList.remove('hidden');
