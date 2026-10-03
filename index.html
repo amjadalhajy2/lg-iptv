@@ -236,13 +236,14 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
         video { width: 100%; height: 100%; outline: none; background: #000; }
         
 /* أزرار وقائمة الترجمة */
-#subtitle-btn { position: absolute; top: 4vh; right: 4vw; z-index: 10001; background: rgba(0,0,0,0.6); color: white; border: 0.2vw solid transparent; padding: 1vh 2vw; font-size: 1.5vw; border-radius: 1vw; cursor: pointer; outline: none; backdrop-filter: blur(5px); font-weight: bold; transition: 0.3s; }
+#subtitle-btn { position: absolute; top: 4vh; right: 4vw; z-index: 10001; background: rgba(0,0,0,0.6); color: white; border: 0.2vw solid transparent; padding: 1.5vh 2.5vw; font-size: 1.5vw; border-radius: 1vw; cursor: pointer; outline: none; backdrop-filter: blur(5px); font-weight: bold; transition: 0.3s; }
 #subtitle-btn:focus, #subtitle-btn:hover { border-color: white; background: var(--primary); transform: scale(1.05); }
-#subtitle-menu { position: absolute; top: 11vh; right: 4vw; z-index: 10001; background: rgba(0,0,0,0.9); border: 0.1vw solid rgba(255,255,255,0.2); border-radius: 1vw; padding: 1vh; display: flex; flex-direction: column; gap: 1vh; max-height: 50vh; overflow-y: auto; box-shadow: 0 1vh 3vh rgba(0,0,0,0.8); }
-.sub-option { background: rgba(255,255,255,0.1); color: white; border: 0.2vw solid transparent; padding: 1vh 2vw; font-size: 1.3vw; border-radius: 0.5vw; cursor: pointer; outline: none; transition: 0.3s; text-align: right; }
+#subtitle-menu { position: absolute; top: 12vh; right: 4vw; z-index: 10001; background: rgba(0,0,0,0.9); border: 0.1vw solid rgba(255,255,255,0.2); border-radius: 1vw; padding: 1vh; display: flex; flex-direction: column; gap: 1vh; max-height: 50vh; overflow-y: auto; box-shadow: 0 1vh 3vh rgba(0,0,0,0.8); min-width: 15vw; }
+.sub-option { background: rgba(255,255,255,0.1); color: white; border: 0.2vw solid transparent; padding: 1.5vh 2vw; font-size: 1.3vw; border-radius: 0.5vw; cursor: pointer; outline: none; transition: 0.3s; text-align: right; }
 .sub-option:focus, .sub-option:hover { background: white; color: black; }
 .sub-option.active-track { border-color: var(--primary); color: var(--primary); background: rgba(0,0,0,0.8); }
 .sub-option.active-track:focus { color: black; background: white; }
+        
     </style>
 </head>
 <body>
@@ -378,10 +379,11 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
             </div>
         </div>
 
-    <div id="player-container" class="hidden">
-    <video id="tv-video" controls autoplay playsinline webkit-playsinline></video>
-    <button id="subtitle-btn" class="focusable hidden" tabindex="0" onclick="toggleSubtitleMenu()">الترجمة</button>
-    <div id="subtitle-menu" class="hidden"></div>
+<div id="player-container" class="hidden">
+            <video id="tv-video" controls autoplay playsinline webkit-playsinline></video>
+            <button id="subtitle-btn" class="focusable hidden" tabindex="0" onclick="toggleSubtitleMenu()">الترجمة</button>
+            <div id="subtitle-menu" class="hidden"></div>
+        </div>
 </div>
     </div> 
 
@@ -1001,13 +1003,14 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     }
 
     const video = document.getElementById('tv-video');
+let subtitleCheckInterval = null;
+
     function playStream(id, type, ext) {
         let domain = iptv.domain; if (!domain.startsWith('http')) domain = 'http://' + domain;
         let url = type === 'live' ? `${domain}/${iptv.user}/${iptv.pass}/${id}` : `${domain}/${type === 'movie' ? 'movie' : 'series'}/${iptv.user}/${iptv.pass}/${id}.${ext}`;
         
         const oldBtn = document.getElementById('next-episode-btn'); if (oldBtn) oldBtn.remove();
 
-        // نتذكر من أي شاشة تم فتح المشغل حتى نعود إليها بالضبط عند الإغلاق
         if (!document.getElementById('details-screen').classList.contains('hidden')) {
             window.playerOrigin = 'details';
         } else {
@@ -1017,23 +1020,157 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
         }
 
         history.pushState({view: 'player'}, 'Player', '#player');
-        document.getElementById('details-screen').classList.add('hidden'); document.getElementById('main-screen').classList.add('hidden'); document.getElementById('player-container').classList.remove('hidden');
+        document.getElementById('details-screen').classList.add('hidden'); 
+        document.getElementById('main-screen').classList.add('hidden'); 
+        document.getElementById('player-container').classList.remove('hidden');
         
-isPlaying = true; video.src = url; video.load(); 
-        
-        document.getElementById('subtitle-btn').classList.add('hidden');
+        // إعدادات زر الترجمة عند بدء التشغيل
         document.getElementById('subtitle-menu').classList.add('hidden');
+        if(type === 'live') {
+            document.getElementById('subtitle-btn').classList.add('hidden');
+        } else {
+            document.getElementById('subtitle-btn').classList.remove('hidden'); // إظهاره دائماً للأفلام والمسلسلات
+        }
 
+        isPlaying = true; video.src = url; video.load(); 
         video.onloadedmetadata = () => { 
             if (activeStreamData && activeStreamData.resume_time > 0 && type !== 'live') { 
-                video.currentTime = activeStreamData.resume_time; showToast(`تم الاستئناف بنجاح`); 
-            } 
-            // الانتظار قليلاً حتى يقوم التلفاز بتحليل مسارات الترجمة من ملف الفيديو
-            setTimeout(setupSubtitles, 1500);
+                video.currentTime = activeStreamData.resume_time; 
+                showToast(`تم الاستئناف بنجاح`); 
+            }
+            if (type !== 'live') {
+                startSubtitlePolling();
+            }
         };
         video.play().catch(e => console.log(e));
     }
 
+    function startSubtitlePolling() {
+        clearInterval(subtitleCheckInterval);
+        setupSubtitles(); // المحاولة الأولى
+        let checks = 0;
+        // البحث عن الترجمة كل ثانية لمدة 15 ثانية
+        subtitleCheckInterval = setInterval(() => {
+            if (video.textTracks && video.textTracks.length > 0) {
+                setupSubtitles();
+                clearInterval(subtitleCheckInterval);
+            }
+            checks++;
+            if (checks > 15) { 
+                clearInterval(subtitleCheckInterval);
+                setupSubtitles(); // تحديث أخير
+            }
+        }, 1000);
+    }
+
+    window.toggleSubtitleMenu = () => {
+        const menu = document.getElementById('subtitle-menu');
+        menu.classList.toggle('hidden');
+        if (!menu.classList.contains('hidden')) {
+            const firstOpt = menu.querySelector('.focusable.active-track') || menu.querySelector('.focusable');
+            if (firstOpt) firstOpt.focus();
+        } else {
+            document.getElementById('subtitle-btn').focus();
+        }
+    };
+
+    function setupSubtitles() {
+        const tracks = video.textTracks;
+        const btn = document.getElementById('subtitle-btn');
+        const menu = document.getElementById('subtitle-menu');
+        menu.innerHTML = '';
+        
+        let hasArabic = false;
+        
+        let offBtn = document.createElement('button');
+        offBtn.className = 'sub-option focusable';
+        offBtn.tabIndex = 0;
+        offBtn.innerText = 'إيقاف الترجمة';
+        offBtn.onclick = () => setSubtitle(-1);
+        offBtn.addEventListener('mouseenter', (e) => safeFocus(e.target));
+        menu.appendChild(offBtn);
+
+        // إذا لم يتم العثور على ترجمة بعد
+        if (!tracks || tracks.length === 0) {
+            let noSub = document.createElement('div');
+            noSub.style.color = '#aaa';
+            noSub.style.padding = '1vh 2vw';
+            noSub.style.textAlign = 'center';
+            noSub.style.fontSize = '1.1vw';
+            noSub.innerText = 'جاري البحث أو لا توجد ترجمة مدمجة...';
+            menu.appendChild(noSub);
+            updateSubtitleUI();
+            return;
+        }
+
+        // التحقق مما إذا كان هناك مسار مفعل مسبقاً
+        let isAnyTrackShowing = false;
+        for (let i = 0; i < tracks.length; i++) {
+            if (tracks[i].mode === 'showing') isAnyTrackShowing = true;
+        }
+
+        for (let i = 0; i < tracks.length; i++) {
+            let track = tracks[i];
+            let langLabel = track.label || track.language || `ترجمة ${i + 1}`;
+            let isArabic = langLabel.toLowerCase().includes('ar') || langLabel.includes('عربي') || langLabel.toLowerCase().includes('arabic');
+            
+            // تفعيل العربية تلقائياً إذا لم تكن هناك لغة مفعلة مسبقاً
+            if (isArabic && !hasArabic && !isAnyTrackShowing) {
+                hasArabic = true;
+                setSubtitle(i, false); 
+            }
+
+            let optBtn = document.createElement('button');
+            optBtn.className = 'sub-option focusable';
+            optBtn.tabIndex = 0;
+            optBtn.innerText = langLabel;
+            optBtn.onclick = () => setSubtitle(i);
+            optBtn.addEventListener('mouseenter', (e) => safeFocus(e.target));
+            menu.appendChild(optBtn);
+        }
+        
+        if (!hasArabic && !isAnyTrackShowing) setSubtitle(-1, false); 
+        updateSubtitleUI();
+    }
+
+    function setSubtitle(index, closeMenu = true) {
+        const tracks = video.textTracks;
+        for (let i = 0; i < tracks.length; i++) {
+            tracks[i].mode = (i === index) ? 'showing' : 'hidden';
+        }
+        updateSubtitleUI();
+        if (closeMenu) {
+            document.getElementById('subtitle-menu').classList.add('hidden');
+            document.getElementById('subtitle-btn').focus();
+        }
+    }
+
+    function updateSubtitleUI() {
+        const tracks = video.textTracks;
+        const btn = document.getElementById('subtitle-btn');
+        const options = document.getElementById('subtitle-menu').querySelectorAll('.sub-option');
+        
+        let activeFound = false;
+        for (let i = 0; i < tracks.length; i++) {
+            if (tracks[i].mode === 'showing') {
+                btn.innerText = 'الترجمة: ' + (tracks[i].label || tracks[i].language || `مفعلة`);
+                if (options[i + 1]) options[i + 1].classList.add('active-track');
+                activeFound = true;
+            } else {
+                if (options[i + 1]) options[i + 1].classList.remove('active-track');
+            }
+        }
+        
+        if (!activeFound) {
+            btn.innerText = 'الترجمة: إيقاف';
+            if (options[0]) options[0].classList.add('active-track');
+        } else {
+            if (options[0]) options[0].classList.remove('active-track');
+        }
+    }
+
+    video.textTracks.onaddtrack = () => { setupSubtitles(); };
+    
     video.addEventListener('timeupdate', () => {
         if (!isPlaying || !activeStreamData) return;
         if (activeStreamData.type !== 'live' && Math.floor(video.currentTime) > 0 && Math.floor(video.currentTime) % 15 === 0) { saveActivity(Math.floor(video.currentTime)); }
