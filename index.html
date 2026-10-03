@@ -234,6 +234,15 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
 
         #player-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 9999; }
         video { width: 100%; height: 100%; outline: none; background: #000; }
+        
+/* أزرار وقائمة الترجمة */
+#subtitle-btn { position: absolute; top: 4vh; right: 4vw; z-index: 10001; background: rgba(0,0,0,0.6); color: white; border: 0.2vw solid transparent; padding: 1vh 2vw; font-size: 1.5vw; border-radius: 1vw; cursor: pointer; outline: none; backdrop-filter: blur(5px); font-weight: bold; transition: 0.3s; }
+#subtitle-btn:focus, #subtitle-btn:hover { border-color: white; background: var(--primary); transform: scale(1.05); }
+#subtitle-menu { position: absolute; top: 11vh; right: 4vw; z-index: 10001; background: rgba(0,0,0,0.9); border: 0.1vw solid rgba(255,255,255,0.2); border-radius: 1vw; padding: 1vh; display: flex; flex-direction: column; gap: 1vh; max-height: 50vh; overflow-y: auto; box-shadow: 0 1vh 3vh rgba(0,0,0,0.8); }
+.sub-option { background: rgba(255,255,255,0.1); color: white; border: 0.2vw solid transparent; padding: 1vh 2vw; font-size: 1.3vw; border-radius: 0.5vw; cursor: pointer; outline: none; transition: 0.3s; text-align: right; }
+.sub-option:focus, .sub-option:hover { background: white; color: black; }
+.sub-option.active-track { border-color: var(--primary); color: var(--primary); background: rgba(0,0,0,0.8); }
+.sub-option.active-track:focus { color: black; background: white; }
     </style>
 </head>
 <body>
@@ -369,9 +378,11 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
             </div>
         </div>
 
-        <div id="player-container" class="hidden">
-            <video id="tv-video" controls autoplay playsinline webkit-playsinline></video>
-        </div>
+    <div id="player-container" class="hidden">
+    <video id="tv-video" controls autoplay playsinline webkit-playsinline></video>
+    <button id="subtitle-btn" class="focusable hidden" tabindex="0" onclick="toggleSubtitleMenu()">الترجمة</button>
+    <div id="subtitle-menu" class="hidden"></div>
+</div>
     </div> 
 
 <script>
@@ -1008,8 +1019,18 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
         history.pushState({view: 'player'}, 'Player', '#player');
         document.getElementById('details-screen').classList.add('hidden'); document.getElementById('main-screen').classList.add('hidden'); document.getElementById('player-container').classList.remove('hidden');
         
-        isPlaying = true; video.src = url; video.load(); 
-        video.onloadedmetadata = () => { if (activeStreamData && activeStreamData.resume_time > 0 && type !== 'live') { video.currentTime = activeStreamData.resume_time; showToast(`تم الاستئناف بنجاح`); } };
+isPlaying = true; video.src = url; video.load(); 
+        
+        document.getElementById('subtitle-btn').classList.add('hidden');
+        document.getElementById('subtitle-menu').classList.add('hidden');
+
+        video.onloadedmetadata = () => { 
+            if (activeStreamData && activeStreamData.resume_time > 0 && type !== 'live') { 
+                video.currentTime = activeStreamData.resume_time; showToast(`تم الاستئناف بنجاح`); 
+            } 
+            // الانتظار قليلاً حتى يقوم التلفاز بتحليل مسارات الترجمة من ملف الفيديو
+            setTimeout(setupSubtitles, 1500);
+        };
         video.play().catch(e => console.log(e));
     }
 
@@ -1038,7 +1059,104 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
     });
 
     video.addEventListener('ended', () => { if (isPlaying && activeStreamData && activeStreamData.type === 'series') { const nextEpBtn = document.getElementById('next-episode-btn'); if (nextEpBtn) nextEpBtn.remove(); playNextEpisode(); } });
+    // --- دوال التحكم بالترجمة للريموت وتحديد العربية كافتراضية ---
+    window.toggleSubtitleMenu = () => {
+        const menu = document.getElementById('subtitle-menu');
+        menu.classList.toggle('hidden');
+        if (!menu.classList.contains('hidden')) {
+            const firstOpt = menu.querySelector('.focusable.active-track') || menu.querySelector('.focusable');
+            if (firstOpt) firstOpt.focus();
+        } else {
+            document.getElementById('subtitle-btn').focus();
+        }
+    };
 
+    function setupSubtitles() {
+        const tracks = video.textTracks;
+        const btn = document.getElementById('subtitle-btn');
+        const menu = document.getElementById('subtitle-menu');
+        menu.innerHTML = '';
+        
+        if (!tracks || tracks.length === 0 || activeStreamData?.type === 'live') {
+            btn.classList.add('hidden');
+            return;
+        }
+
+        btn.classList.remove('hidden');
+        let hasArabic = false;
+        
+        // إنشاء خيار "إيقاف الترجمة"
+        let offBtn = document.createElement('button');
+        offBtn.className = 'sub-option focusable';
+        offBtn.tabIndex = 0;
+        offBtn.innerText = 'إيقاف الترجمة';
+        offBtn.onclick = () => setSubtitle(-1);
+        offBtn.addEventListener('mouseenter', (e) => safeFocus(e.target));
+        menu.appendChild(offBtn);
+
+        for (let i = 0; i < tracks.length; i++) {
+            let track = tracks[i];
+            let langLabel = track.label || track.language || `ترجمة ${i + 1}`;
+            
+            // البحث عن اللغة العربية
+            let isArabic = langLabel.toLowerCase().includes('ar') || langLabel.includes('عربي') || langLabel.toLowerCase().includes('arabic');
+            
+            if (isArabic && !hasArabic) {
+                hasArabic = true;
+                setSubtitle(i, false); // تفعيل العربية تلقائياً وبصمت
+            }
+
+            let optBtn = document.createElement('button');
+            optBtn.className = 'sub-option focusable';
+            optBtn.tabIndex = 0;
+            optBtn.innerText = langLabel;
+            optBtn.onclick = () => setSubtitle(i);
+            optBtn.addEventListener('mouseenter', (e) => safeFocus(e.target));
+            menu.appendChild(optBtn);
+        }
+        
+        if (!hasArabic) setSubtitle(-1, false); // إذا لم توجد عربية، أوقفها كافتراضي
+        updateSubtitleUI();
+    }
+
+    function setSubtitle(index, closeMenu = true) {
+        const tracks = video.textTracks;
+        for (let i = 0; i < tracks.length; i++) {
+            tracks[i].mode = (i === index) ? 'showing' : 'hidden';
+        }
+        updateSubtitleUI();
+        if (closeMenu) {
+            document.getElementById('subtitle-menu').classList.add('hidden');
+            document.getElementById('subtitle-btn').focus();
+        }
+    }
+
+    function updateSubtitleUI() {
+        const tracks = video.textTracks;
+        const btn = document.getElementById('subtitle-btn');
+        const options = document.getElementById('subtitle-menu').querySelectorAll('.sub-option');
+        
+        let activeFound = false;
+        for (let i = 0; i < tracks.length; i++) {
+            if (tracks[i].mode === 'showing') {
+                btn.innerText = 'الترجمة: ' + (tracks[i].label || tracks[i].language || `مفعلة`);
+                if (options[i + 1]) options[i + 1].classList.add('active-track');
+                activeFound = true;
+            } else {
+                if (options[i + 1]) options[i + 1].classList.remove('active-track');
+            }
+        }
+        
+        if (!activeFound) {
+            btn.innerText = 'الترجمة: إيقاف';
+            if (options[0]) options[0].classList.add('active-track');
+        } else {
+            if (options[0]) options[0].classList.remove('active-track');
+        }
+    }
+
+    video.textTracks.onaddtrack = () => { setupSubtitles(); };
+    
     function playNextEpisode() {
         let currentEpIndex = flatEpisodes.findIndex(e => String(e.id) === String(activeStreamData.current_episode_id));
         if (currentEpIndex !== -1 && currentEpIndex < flatEpisodes.length - 1) {
@@ -1124,7 +1242,9 @@ Resources:`;for(let t of c){if(!t||typeof t!=`string`)throw Error(`@supabase/aut
         if (isPlaying) {
             isPlaying = false; video.pause(); video.src = ""; video.load();
             const nextEpBtn = document.getElementById('next-episode-btn'); if (nextEpBtn) nextEpBtn.remove();
-            document.getElementById('player-container').classList.add('hidden');
+           document.getElementById('player-container').classList.add('hidden');
+            document.getElementById('subtitle-menu').classList.add('hidden');
+            document.getElementById('subtitle-btn').classList.add('hidden');
 
             // نعود إلى نفس الشاشة التي تم فتح المشغل منها بالضبط (وليس بناءً على نوع المحتوى فقط)
             if (window.playerOrigin === 'main') {
